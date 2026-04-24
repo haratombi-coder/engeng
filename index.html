@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개발자 영어 플래시카드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --surface: #111111; --surface-2: #1a1a1a;
+      --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+      --text: #efefed; --text-muted: #5a5855; --text-dim: #2e2c2a;
+      --warm: #d4a574; --blue: #7eb8f7; --green: #7ecf9e;
+    }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .logo-dot { width: 7px; height: 7px; background: var(--warm); border-radius: 50%; }
+    .prog-text { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+    .topic-bar { border-bottom: 1px solid var(--border); overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+    .topic-bar::-webkit-scrollbar { display: none; }
+    .topic-inner { display: flex; padding: 0 2rem; min-width: max-content; }
+    .topic-tab { padding: 11px 16px; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
+    .topic-tab:hover { color: var(--text); }
+    .topic-tab.active { color: var(--warm); border-bottom-color: var(--warm); }
+    main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; gap: 1.5rem; }
+    .card-wrap { width: 100%; max-width: 560px; perspective: 1000px; animation: fadeIn 0.3s ease; }
+    .card { width: 100%; min-height: 300px; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); cursor: pointer; }
+    .card.flipped { transform: rotateY(180deg); }
+    .card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); padding: 2rem; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+    .card-back { transform: rotateY(180deg); background: var(--surface-2); }
+    .lang-label { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .en-label { color: var(--blue); }
+    .es-label { color: var(--green); }
+    .ko-label { color: var(--warm); }
+    .en-text { font-size: clamp(18px, 3.5vw, 26px); font-weight: 800; line-height: 1.4; color: var(--text); }
+    .es-text { font-size: clamp(13px, 2vw, 16px); font-weight: 700; line-height: 1.5; color: var(--green); }
+    .ko-text { font-size: clamp(13px, 2vw, 16px); font-weight: 700; line-height: 1.5; color: var(--warm); }
+    .tap-hint { font-size: 11px; font-weight: 700; color: var(--text-dim); margin-top: auto; text-align: center; }
+    .tip-box { font-size: 12px; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; line-height: 1.6; margin-top: 4px; }
+    .tts-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .tts-btn { height: 36px; padding: 0 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+    .tts-btn.en { color: var(--blue); border-color: rgba(126,184,247,0.2); }
+    .tts-btn.en:hover { border-color: rgba(126,184,247,0.4); }
+    .tts-btn.es { color: var(--green); border-color: rgba(126,207,158,0.2); }
+    .tts-btn.es:hover { border-color: rgba(126,207,158,0.4); }
+    .nav-row { display: flex; align-items: center; gap: 16px; }
+    .nav-btn { width: 48px; height: 48px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: var(--text); font-family: 'Nunito', sans-serif; }
+    .nav-btn:hover { border-color: var(--border-hover); background: var(--surface-2); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .prog-wrap { width: 160px; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--warm); border-radius: 99px; transition: width 0.3s ease; }
+    .shuffle-btn { height: 34px; padding: 0 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: 700; font-family: 'Nunito', sans-serif; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .shuffle-btn:hover { border-color: var(--border-hover); color: var(--text); }
+    footer { text-align: center; padding: 1.5rem; font-size: 11px; font-weight: 700; color: var(--text-dim); border-top: 1px solid var(--border); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 480px) { header { padding: 0 1rem; } .topic-inner { padding: 0 1rem; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="logo-dot"></span>개발자 영어</div>
+  <div class="prog-text" id="progText">1 / 30</div>
+</header>
+<div class="topic-bar">
+  <div class="topic-inner">
+    <div class="topic-tab active" onclick="setTopic(0,this)">🔴 에러 메시지</div>
+    <div class="topic-tab" onclick="setTopic(1,this)">📄 공식 문서</div>
+    <div class="topic-tab" onclick="setTopic(2,this)">🐙 GitHub/SO</div>
+    <div class="topic-tab" onclick="setTopic(3,this)">🔍 검색어</div>
+    <div class="topic-tab" onclick="setTopic(4,this)">💬 커뮤니케이션</div>
+    <div class="topic-tab" onclick="setTopic(5,this)">⌨️ 터미널</div>
+    <div class="topic-tab" onclick="setTopic(6,this)">👀 코드 리뷰</div>
+    <div class="topic-tab" onclick="setTopic(7,this)">⚛️ React/Next.js</div>
+    <div class="topic-tab" onclick="setTopic(8,this)">🔌 백엔드/API</div>
+    <div class="topic-tab" onclick="setTopic(9,this)">🗄️ 데이터베이스</div>
+  </div>
+</div>
+<main id="main"></main>
+<footer>개발자 영어 플래시카드 · 총 502개 문장</footer>
+<script>
+const DATA = [
+  [ // 0: 에러 메시지
+    {en:'Cannot read properties of undefined',es:'No se puede leer propiedades de undefined',ko:'undefined의 속성을 읽을 수 없어요',tip:'변수가 undefined일 때 .length 같은 걸 쓰면 나와요'},
+    {en:'Failed to fetch',es:'Error al obtener datos',ko:'데이터 가져오기 실패',tip:'API 호출 실패 or CORS 문제일 때 자주 봐요'},
+    {en:'Request timed out. Please try again.',es:'La solicitud expiró. Inténtalo de nuevo.',ko:'요청 시간이 초과됐어요. 다시 시도해주세요.',tip:'서버 응답이 너무 늦을 때 나와요'},
+    {en:'Unexpected token in JSON at position 0',es:'Token inesperado en JSON en posición 0',ko:'JSON 0번째 위치에 예상치 못한 문자가 있어요',tip:'JSON 형식 오류. 따옴표나 괄호 확인!'},
+    {en:'Module not found: Can\'t resolve \'./components\'',es:'Módulo no encontrado: No se puede resolver \'./components\'',ko:'모듈을 찾을 수 없어요: \'./components\' 확인해요',tip:'파일 경로 오타이거나 파일이 없는 거예요'},
+    {en:'SyntaxError: Unexpected end of input',es:'Error de sintaxis: Fin de entrada inesperado',ko:'구문 오류: 예상치 못한 입력 끝',tip:'괄호나 따옴표가 안 닫힌 거예요'},
+    {en:'TypeError: is not a function',es:'Error de tipo: no es una función',ko:'타입 오류: 함수가 아니에요',tip:'함수 이름 오타이거나 import를 잘못한 거예요'},
+    {en:'ReferenceError: variable is not defined',es:'Error de referencia: la variable no está definida',ko:'참조 오류: 변수가 정의되지 않았어요',tip:'변수 선언 전에 사용하거나 스코프 밖에서 쓴 거예요'},
+    {en:'CORS policy blocked this request',es:'La política CORS bloqueó esta solicitud',ko:'CORS 정책으로 이 요청이 차단됐어요',tip:'서버에서 Access-Control-Allow-Origin 헤더를 추가해야 해요'},
+    {en:'404 Not Found',es:'404 No encontrado',ko:'404 찾을 수 없음',tip:'URL이 잘못됐거나 라우팅 설정이 안 된 거예요'},
+    {en:'500 Internal Server Error',es:'500 Error interno del servidor',ko:'500 서버 내부 오류',tip:'서버 측 코드에 문제가 있을 때 나와요'},
+    {en:'401 Unauthorized',es:'401 No autorizado',ko:'401 권한 없음',tip:'로그인이 안 됐거나 토큰이 만료된 거예요'},
+    {en:'403 Forbidden',es:'403 Prohibido',ko:'403 접근 금지',tip:'권한은 있지만 해당 리소스 접근이 막힌 거예요'},
+    {en:'Maximum call stack size exceeded',es:'Tamaño máximo de pila de llamadas excedido',ko:'최대 호출 스택 크기가 초과됐어요',tip:'무한 재귀 호출이 발생한 거예요'},
+    {en:'Uncaught TypeError: Cannot set properties of null',es:'TypeError no capturado: No se pueden establecer propiedades de null',ko:'잡히지 않은 타입 오류: null의 속성을 설정할 수 없어요',tip:'DOM 요소가 null인 상태에서 조작하려 할 때 나와요'},
+    {en:'Network Error',es:'Error de red',ko:'네트워크 오류',tip:'인터넷 연결 or 서버가 꺼져 있을 때 나와요'},
+    {en:'Warning: Each child in a list should have a unique key prop',es:'Advertencia: Cada hijo en una lista debe tener una prop key única',ko:'경고: 리스트의 각 자식에는 고유한 key prop이 있어야 해요',tip:'React에서 map() 쓸 때 key 빠지면 나와요'},
+    {en:'npm ERR! peer dep missing',es:'npm ERR! dependencia peer faltante',ko:'npm 오류! peer 의존성이 없어요',tip:'패키지 버전 호환성 문제예요. peer dependencies 확인!'},
+    {en:'Cannot find module \'react\'',es:'No se puede encontrar el módulo \'react\'',ko:'\'react\' 모듈을 찾을 수 없어요',tip:'npm install 을 먼저 실행해요'},
+    {en:'Unhandled Promise Rejection',es:'Rechazo de promesa no manejado',ko:'처리되지 않은 Promise 거부',tip:'async/await에서 try-catch가 빠진 거예요'},
+    {en:'Failed to compile',es:'Error al compilar',ko:'컴파일 실패',tip:'코드에 문법 오류가 있어요. 에러 메시지 자세히 읽어요'},
+    {en:'Cannot connect to the database',es:'No se puede conectar a la base de datos',ko:'데이터베이스에 연결할 수 없어요',tip:'DB 서버가 꺼져 있거나 연결 정보가 틀린 거예요'},
+    {en:'Invalid hook call',es:'Llamada de hook inválida',ko:'잘못된 훅 호출이에요',tip:'React 훅 규칙 위반이에요. 조건문 안에서 쓰면 안 돼요'},
+    {en:'Objects are not valid as a React child',es:'Los objetos no son válidos como hijo de React',ko:'객체는 React 자식으로 유효하지 않아요',tip:'JSX에서 객체를 직접 렌더링하면 안 돼요. 문자열로 변환해요'},
+    {en:'Too many re-renders',es:'Demasiados re-renderizados',ko:'리렌더링이 너무 많아요',tip:'setState를 렌더링 중에 호출하면 무한 루프가 생겨요'},
+    {en:'Cannot destructure property of undefined',es:'No se puede desestructurar la propiedad de undefined',ko:'undefined의 속성을 구조 분해할 수 없어요',tip:'구조 분해 전에 값이 있는지 확인해요'},
+    {en:'Hydration error: server and client content mismatch',es:'Error de hidratación: contenido del servidor y cliente no coinciden',ko:'하이드레이션 오류: 서버와 클라이언트 콘텐츠가 달라요',tip:'Next.js에서 자주 나와요. SSR/CSR 렌더링 차이 때문이에요'},
+    {en:'Process exited with code 1',es:'El proceso salió con código 1',ko:'프로세스가 코드 1로 종료됐어요',tip:'exit code 0 = 성공, 그 외 = 실패예요'},
+    {en:'SSL certificate verify failed',es:'Verificación del certificado SSL fallida',ko:'SSL 인증서 확인 실패',tip:'인증서가 만료됐거나 자체 서명된 인증서일 때 나와요'},
+    {en:'Segmentation fault (core dumped)',es:'Fallo de segmentación (volcado de núcleo)',ko:'세그멘테이션 오류 (코어 덤프)',tip:'C/C++에서 잘못된 메모리 접근 시 나와요'},
+    {en:'Warning: validateDOMNesting — p cannot appear as a descendant of p element',es:'Advertencia: validateDOMNesting — p no puede aparecer como descendiente del elemento p',ko:'경고: validateDOMNesting — p 요소가 p 요소의 자식으로 올 수 없어요',tip:'<p> 안에 <p>, <div>를 넣으면 안 돼요. HTML 중첩 규칙을 확인해요'},
+    {en:'Error: ECONNRESET: connection reset by peer — the remote server forcibly closed the connection',es:'Error: ECONNRESET: conexión reiniciada por el par — el servidor remoto cerró la conexión a la fuerza',ko:'오류: ECONNRESET: 피어에 의해 연결이 재설정됐어요 — 원격 서버가 강제로 연결을 닫았어요',tip:'서버 측에서 연결을 강제 종료했어요. Keep-Alive 설정이나 서버 상태를 확인해요'},
+    {en:'SyntaxError: Unexpected end of JSON input — the response body may be empty',es:'SyntaxError: Fin inesperado de la entrada JSON — el cuerpo de respuesta puede estar vacío',ko:'구문 오류: 예상치 못한 JSON 입력 끝 — 응답 본문이 비어있을 수 있어요',tip:'API 응답이 비어있거나 JSON이 아닌 경우 발생해요. 응답을 로깅해서 확인해요'},
+    {en:'Error: Cannot find module \'dotenv\' — run npm install dotenv to add it to your project',es:'Error: No se puede encontrar el módulo \'dotenv\' — ejecuta npm install dotenv para agregarlo a tu proyecto',ko:'오류: \'dotenv\' 모듈을 찾을 수 없어요 — npm install dotenv 를 실행해 프로젝트에 추가해요',tip:'dotenv는 .env 파일의 환경 변수를 로드하는 패키지예요'},
+    {en:'Error: next/image Un-configured Host — add the hostname to your next.config.js images.domains array',es:'Error: next/image Host no configurado — agrega el nombre de host al array images.domains de next.config.js',ko:'오류: next/image 구성되지 않은 호스트 — next.config.js의 images.domains 배열에 호스트명을 추가해요',tip:'Next.js Image 컴포넌트는 허용된 외부 이미지 도메인을 명시적으로 설정해야 해요'},
+    {en:'Error: Headers already sent to the client — cannot modify response after res.send() is called',es:'Error: Encabezados ya enviados al cliente — no se puede modificar la respuesta después de llamar a res.send()',ko:'오류: 클라이언트에 헤더가 이미 전송됐어요 — res.send() 호출 후 응답을 수정할 수 없어요',tip:'Express에서 응답을 이미 보낸 후 res.json()을 다시 호출한 거예요. return을 추가해요'},
+    {en:'TypeError: Cannot read properties of undefined (reading \'split\') — value must be a string',es:'TypeError: No se pueden leer propiedades de undefined (leyendo \'split\') — el valor debe ser una cadena',ko:'타입 오류: undefined의 속성을 읽을 수 없어요 (\'split\' 읽기) — 값은 문자열이어야 해요',tip:'string 메서드를 호출하기 전에 값이 문자열인지 확인해요'},
+    {en:'Error: Digital envelope routines unsupported — upgrade Node.js or set NODE_OPTIONS=--openssl-legacy-provider',es:'Error: Rutinas de sobre digital no compatibles — actualiza Node.js o configura NODE_OPTIONS=--openssl-legacy-provider',ko:'오류: 디지털 엔벨로프 루틴이 지원되지 않아요 — Node.js를 업그레이드하거나 NODE_OPTIONS=--openssl-legacy-provider 를 설정해요',tip:'Node.js 17+ 와 일부 구버전 패키지의 OpenSSL 호환성 문제예요'},
+    {en:'Error: ENOTEMPTY: directory not empty — use recursive deletion to remove folders with files',es:'Error: ENOTEMPTY: directorio no vacío — usa la eliminación recursiva para eliminar carpetas con archivos',ko:'오류: ENOTEMPTY: 디렉토리가 비어있지 않아요 — 파일이 있는 폴더를 삭제하려면 재귀 삭제를 사용해요',tip:'rm -rf 또는 fs.rm(path, { recursive: true }) 로 재귀적으로 삭제해요'},
+    {en:'Error: The requested module does not provide an export named \'default\' — use named import instead',es:'Error: El módulo solicitado no proporciona una exportación llamada \'default\' — usa importación nombrada en su lugar',ko:'오류: 요청한 모듈이 \'default\' 내보내기를 제공하지 않아요 — 대신 named import를 사용해요',tip:'named export를 가져올 때는 중괄호를 사용해요: import { foo } from \'./module\''},
+    {en:'Error: Cannot stringify objects with circular references — use a custom replacer function',es:'Error: No se pueden serializar objetos con referencias circulares — usa una función replacer personalizada',ko:'오류: 순환 참조가 있는 객체를 문자열화할 수 없어요 — 커스텀 replacer 함수를 사용해요',tip:'JSON.stringify(obj, replacer) 로 순환 참조를 처리해요'},
+    {en:'Error: Hydration mismatch — text content does not match between server and client rendered output',es:'Error: Error de hidratación — el contenido de texto no coincide entre la salida renderizada del servidor y del cliente',ko:'오류: 하이드레이션 불일치 — 서버와 클라이언트 렌더링 결과의 텍스트 내용이 일치하지 않아요',tip:'날짜, 랜덤값 등 서버와 클라이언트에서 다른 값을 렌더링하면 발생해요'},
+    {en:'Error: body-parser deprecated — use express.json() and express.urlencoded() built-in middleware instead',es:'Error: body-parser obsoleto — usa el middleware integrado express.json() y express.urlencoded() en su lugar',ko:'오류: body-parser가 더 이상 권장되지 않아요 — 대신 내장 미들웨어 express.json()과 express.urlencoded()를 사용해요',tip:'Express 4.16+ 에서는 express.json()이 body-parser를 대체해요'},
+    {en:'ReferenceError: window is not defined — this code is running in a server-side Node.js context',es:'ReferenceError: window no está definido — este código se está ejecutando en un contexto Node.js del lado del servidor',ko:'참조 오류: window가 정의되지 않았어요 — 이 코드는 서버 사이드 Node.js 컨텍스트에서 실행되고 있어요',tip:'typeof window !== \'undefined\' 체크 후 실행하거나 useEffect 안에서 사용해요'},
+    {en:'Error: listen EADDRINUSE: address already in use :::8080 — kill the process or use another port',es:'Error: escuchar EADDRINUSE: dirección ya en uso :::8080 — termina el proceso o usa otro puerto',ko:'오류: EADDRINUSE 수신 대기: :::8080 주소가 이미 사용 중이에요 — 프로세스를 종료하거나 다른 포트를 사용해요',tip:'kill $(lsof -t -i:8080) 명령어로 포트를 점유한 프로세스를 종료해요'},
+    {en:'Error: useContext called outside of a Provider — wrap your component tree with the appropriate Context.Provider',es:'Error: useContext llamado fuera de un Provider — envuelve tu árbol de componentes con el Context.Provider apropiado',ko:'오류: Provider 외부에서 useContext가 호출됐어요 — 적절한 Context.Provider로 컴포넌트 트리를 감싸요',tip:'Context를 사용하는 컴포넌트는 해당 Context.Provider 내부에 있어야 해요'},
+    {en:'Error: Minified React error #31 — you tried to render an object instead of a React element',es:'Error: Error React minimizado #31 — intentaste renderizar un objeto en lugar de un elemento React',ko:'오류: 최소화된 React 오류 #31 — React 요소 대신 객체를 렌더링하려 했어요',tip:'reactjs.org/docs/error-decoder.html?invariant=31 에서 전체 오류 메시지를 확인해요'},
+    {en:'Error: Invalid value for the \'stroke\' attribute — use a valid CSS color value or SVG color keyword',es:'Error: Valor inválido para el atributo \'stroke\' — usa un valor de color CSS válido o una palabra clave de color SVG',ko:'오류: \'stroke\' 속성의 값이 유효하지 않아요 — 유효한 CSS 색상 값이나 SVG 색상 키워드를 사용해요',tip:'SVG 속성에는 CSS 변수 대신 실제 색상값을 사용해야 해요'},
+    {en:'Error: Maximum call stack size exceeded when parsing deeply nested JSON structure',es:'Error: Tamaño máximo de la pila de llamadas excedido al analizar una estructura JSON profundamente anidada',ko:'오류: 깊게 중첩된 JSON 구조를 파싱할 때 최대 호출 스택 크기가 초과됐어요',tip:'JSON이 너무 깊게 중첩됐어요. 데이터 구조를 평탄화하거나 청크로 나눠 처리해요'},
+    {en:'Error: Package subpath \'./client\' is not defined by exports in node_modules/mongoose/package.json',es:'Error: La subruta del paquete \'./client\' no está definida por exports en node_modules/mongoose/package.json',ko:'오류: node_modules/mongoose/package.json의 exports에 \'./client\' 패키지 서브패스가 정의되지 않았어요',tip:'패키지 버전 호환성 문제예요. 패키지를 최신 버전으로 업데이트해요'}
+  ],
+  [ // 1: 공식 문서
+    {en:'This method is deprecated and will be removed in a future version.',es:'Este método está obsoleto y se eliminará en una versión futura.',ko:'이 메서드는 더 이상 권장되지 않으며 향후 제거될 예정이에요.',tip:'deprecated = 곧 없어질 기능. 다른 방법 찾으세요!'},
+    {en:'Returns a Promise that resolves to a string.',es:'Devuelve una promesa que resuelve a una cadena.',ko:'문자열로 해결되는 Promise를 반환해요.',tip:'공식 문서에서 반환값 설명할 때 자주 나오는 패턴이에요'},
+    {en:'This feature is experimental and may change at any time.',es:'Esta función es experimental y puede cambiar en cualquier momento.',ko:'이 기능은 실험적이며 언제든지 변경될 수 있어요.',tip:'실험적 기능은 프로덕션에서 쓰면 위험해요!'},
+    {en:'See the full list of supported options below.',es:'Consulta la lista completa de opciones compatibles a continuación.',ko:'아래에서 지원되는 옵션의 전체 목록을 확인하세요.',tip:'below/above 방향 표현 익혀두면 문서 읽기 편해요'},
+    {en:'This is a breaking change from the previous version.',es:'Este es un cambio importante respecto a la versión anterior.',ko:'이것은 이전 버전과 호환성이 깨지는 변경 사항이에요.',tip:'breaking change = 기존 코드가 동작 안 할 수 있어요'},
+    {en:'Optional. Defaults to true if not specified.',es:'Opcional. El valor predeterminado es verdadero si no se especifica.',ko:'선택사항이에요. 지정하지 않으면 기본값은 true예요.',tip:'Optional/Required 구분이 중요해요'},
+    {en:'Throws an error if the value is invalid.',es:'Lanza un error si el valor no es válido.',ko:'값이 유효하지 않으면 에러를 던져요.',tip:'throws = 예외를 발생시킨다는 뜻이에요'},
+    {en:'This API is available in Node.js v16 and later.',es:'Esta API está disponible en Node.js v16 y versiones posteriores.',ko:'이 API는 Node.js v16 이상에서 사용할 수 있어요.',tip:'and later / and above = 해당 버전 이상이라는 뜻이에요'},
+    {en:'Note: This behavior may differ across platforms.',es:'Nota: Este comportamiento puede variar entre plataformas.',ko:'참고: 이 동작은 플랫폼마다 다를 수 있어요.',tip:'Note/Warning/Tip 섹션은 꼭 읽어야 해요'},
+    {en:'Refer to the migration guide for more details.',es:'Consulta la guía de migración para más detalles.',ko:'자세한 내용은 마이그레이션 가이드를 참고하세요.',tip:'버전 업그레이드 시 migration guide는 필독이에요'},
+    {en:'This method mutates the original array.',es:'Este método muta el array original.',ko:'이 메서드는 원본 배열을 변경해요.',tip:'mutate = 원본 데이터를 직접 바꾼다는 뜻이에요'},
+    {en:'Returns undefined if no match is found.',es:'Devuelve undefined si no se encuentra coincidencia.',ko:'일치하는 항목이 없으면 undefined를 반환해요.',tip:'반환값이 undefined일 수 있을 때 항상 확인해요'},
+    {en:'This is an asynchronous operation.',es:'Esta es una operación asíncrona.',ko:'이것은 비동기 작업이에요.',tip:'비동기 = async/await 또는 .then()으로 처리해야 해요'},
+    {en:'Must be called before any other methods.',es:'Debe llamarse antes que cualquier otro método.',ko:'다른 메서드보다 먼저 호출해야 해요.',tip:'초기화 함수는 순서가 중요해요'},
+    {en:'This property is read-only.',es:'Esta propiedad es de solo lectura.',ko:'이 속성은 읽기 전용이에요.',tip:'read-only = 값을 바꾸려 하면 에러가 나요'},
+    {en:'Accepts a string or an array of strings.',es:'Acepta una cadena o un array de cadenas.',ko:'문자열 또는 문자열 배열을 받아요.',tip:'파라미터 타입이 유연할 때 이런 표현을 써요'},
+    {en:'Emits an event when the operation is complete.',es:'Emite un evento cuando la operación está completa.',ko:'작업이 완료되면 이벤트를 발생시켜요.',tip:'emit = 이벤트를 발행한다는 뜻이에요'},
+    {en:'Warning: Do not call this method directly.',es:'Advertencia: No llames a este método directamente.',ko:'경고: 이 메서드를 직접 호출하지 마세요.',tip:'내부 메서드는 직접 호출하면 예상치 못한 동작이 생겨요'},
+    {en:'Shallow comparison is used by default.',es:'Se usa comparación superficial de forma predeterminada.',ko:'기본적으로 얕은 비교를 사용해요.',tip:'shallow = 중첩 객체 안까지는 비교 안 해요'},
+    {en:'Type: string | number | boolean',es:'Tipo: cadena | número | booleano',ko:'타입: 문자열 | 숫자 | 불리언',tip:'TypeScript/Flow 타입 표기법이에요. | 는 또는을 뜻해요'},
+    {en:'Available since v2.0.0',es:'Disponible desde v2.0.0',ko:'v2.0.0부터 사용 가능해요',tip:'언제 추가된 기능인지 알 수 있어요'},
+    {en:'Chainable. Returns the instance for method chaining.',es:'Encadenable. Devuelve la instancia para encadenamiento de métodos.',ko:'체인 가능해요. 메서드 체이닝을 위해 인스턴스를 반환해요.',tip:'method chaining = .foo().bar().baz() 형태로 연결하는 거예요'},
+    {en:'No-op if already initialized.',es:'Sin operación si ya está inicializado.',ko:'이미 초기화된 경우 아무 동작도 하지 않아요.',tip:'no-op = no operation. 아무것도 안 한다는 뜻이에요'},
+    {en:'The callback receives two arguments: error and result.',es:'El callback recibe dos argumentos: error y resultado.',ko:'콜백은 두 개의 인수를 받아요: 에러와 결과.',tip:'Node.js 스타일 콜백의 기본 패턴이에요'},
+    {en:'This interface extends the base class.',es:'Esta interfaz extiende la clase base.',ko:'이 인터페이스는 기본 클래스를 확장해요.',tip:'extends = 상속받아서 기능을 추가한다는 뜻이에요'},
+    {en:'This API follows the Promise/A+ specification.',es:'Esta API sigue la especificación Promise/A+.',ko:'이 API는 Promise/A+ 명세를 따라요.',tip:'Promise 표준 스펙이에요. 동작 방식을 보장해줘요'},
+    {en:'Internally calls the flush method.',es:'Internamente llama al método flush.',ko:'내부적으로 flush 메서드를 호출해요.',tip:'internally = 내부 구현 세부 사항을 알려주는 거예요'},
+    {en:'This function is called with the following signature:',es:'Esta función se llama con la siguiente firma:',ko:'이 함수는 다음 시그니처로 호출돼요:',tip:'signature = 함수의 파라미터와 반환값 형태예요'},
+    {en:'This is a getter property.',es:'Esta es una propiedad getter.',ko:'이것은 getter 속성이에요.',tip:'getter = 값을 읽을 때만 사용하는 속성이에요'},
+    {en:'The options object supports the following properties:',es:'El objeto de opciones admite las siguientes propiedades:',ko:'옵션 객체는 다음 속성을 지원해요:',tip:'options 객체 구조 설명할 때 자주 나와요'},
+    {en:'This configuration option is only effective when the NODE_ENV environment variable is set to \'production\'.',es:'Esta opción de configuración solo es efectiva cuando la variable de entorno NODE_ENV se establece en \'production\'.',ko:'이 구성 옵션은 NODE_ENV 환경 변수가 \'production\'으로 설정된 경우에만 유효해요.',tip:'개발과 운영 환경에 따라 다른 동작이 필요할 때 NODE_ENV를 활용해요'},
+    {en:'The method returns a tuple of [data, error] following the Go-style error handling convention.',es:'El método devuelve una tupla de [data, error] siguiendo la convención de manejo de errores al estilo Go.',ko:'메서드는 Go 스타일 오류 처리 관례에 따라 [data, error] 튜플을 반환해요.',tip:'Go 스타일 에러 처리 = 예외 대신 [결과, 에러] 쌍을 반환하는 패턴이에요'},
+    {en:'When using this API in a browser environment, ensure that the required polyfills are loaded before initialization.',es:'Cuando uses esta API en un entorno de navegador, asegúrate de que los polyfills requeridos estén cargados antes de la inicialización.',ko:'브라우저 환경에서 이 API를 사용할 때 초기화 전에 필요한 폴리필이 로드됐는지 확인해요.',tip:'polyfill = 구형 브라우저에서 최신 기능을 지원하도록 하는 코드예요'},
+    {en:'This method is synchronous in v1.x but was changed to return a Promise in v2.0. Update your code accordingly.',es:'Este método es síncrono en v1.x pero se cambió para devolver una Promise en v2.0. Actualiza tu código en consecuencia.',ko:'이 메서드는 v1.x에서 동기식이지만 v2.0에서 Promise를 반환하도록 변경됐어요. 코드를 그에 맞게 업데이트해요.',tip:'버전 업그레이드 시 비동기화된 메서드는 await를 추가해야 해요'},
+    {en:'The timeout value is specified in milliseconds. Set to 0 to disable the timeout entirely.',es:'El valor de tiempo de espera se especifica en milisegundos. Establece en 0 para deshabilitar el tiempo de espera por completo.',ko:'타임아웃 값은 밀리초로 지정해요. 타임아웃을 완전히 비활성화하려면 0으로 설정해요.',tip:'타임아웃을 0으로 설정하면 무기한 대기하므로 운영 환경에서는 주의해요'},
+    {en:'This feature requires the --experimental-vm-modules flag to be enabled when running Node.js.',es:'Esta función requiere que el indicador --experimental-vm-modules esté habilitado al ejecutar Node.js.',ko:'이 기능은 Node.js 실행 시 --experimental-vm-modules 플래그가 활성화되어야 해요.',tip:'experimental 플래그는 버전에 따라 변경될 수 있어요. 릴리즈 노트를 확인해요'},
+    {en:'The plugin accepts a configuration factory function that receives the current environment as its argument.',es:'El plugin acepta una función de fábrica de configuración que recibe el entorno actual como argumento.',ko:'플러그인은 현재 환경을 인수로 받는 구성 팩토리 함수를 받아요.',tip:'factory function = 설정 객체를 반환하는 함수로, 동적 설정에 사용해요'},
+    {en:'If the operation succeeds, the returned object will have a status field set to \'ok\'. On failure, it will be set to \'error\'.',es:'Si la operación tiene éxito, el objeto devuelto tendrá un campo de estado establecido en \'ok\'. En caso de fallo, se establecerá en \'error\'.',ko:'작업이 성공하면 반환된 객체의 status 필드가 \'ok\'로 설정돼요. 실패하면 \'error\'로 설정돼요.',tip:'상태 코드 대신 status 필드로 성공/실패를 나타내는 패턴이에요'},
+    {en:'All date values are serialized as ISO 8601 strings. Parsing them back to Date objects is the responsibility of the consumer.',es:'Todos los valores de fecha se serializan como cadenas ISO 8601. Volver a analizarlos como objetos Date es responsabilidad del consumidor.',ko:'모든 날짜 값은 ISO 8601 문자열로 직렬화돼요. Date 객체로 다시 파싱하는 것은 소비자의 책임이에요.',tip:'new Date(isoString) 으로 ISO 8601 문자열을 Date 객체로 변환해요'},
+    {en:'This class uses the Singleton pattern. Use getInstance() instead of calling the constructor directly.',es:'Esta clase usa el patrón Singleton. Usa getInstance() en lugar de llamar al constructor directamente.',ko:'이 클래스는 싱글톤 패턴을 사용해요. 생성자를 직접 호출하는 대신 getInstance()를 사용해요.',tip:'Singleton = 인스턴스가 하나만 존재하도록 보장하는 패턴이에요'},
+    {en:'The middleware stack is executed in registration order. Order matters — place authentication before authorization.',es:'La pila de middleware se ejecuta en orden de registro. El orden importa — coloca la autenticación antes que la autorización.',ko:'미들웨어 스택은 등록 순서대로 실행돼요. 순서가 중요해요 — 인증을 인가 전에 배치해요.',tip:'미들웨어 순서 오류는 자주 발생하는 버그예요. 순서를 항상 확인해요'},
+    {en:'Calling this method on an already-closed connection will throw an InvalidStateError.',es:'Llamar a este método en una conexión ya cerrada lanzará un InvalidStateError.',ko:'이미 닫힌 연결에서 이 메서드를 호출하면 InvalidStateError가 발생해요.',tip:'연결 상태를 확인한 후 메서드를 호출하는 방어적 프로그래밍이 필요해요'},
+    {en:'The library is fully tree-shakeable. Only the functions you import will be included in your production bundle.',es:'La biblioteca es completamente tree-shakeable. Solo las funciones que importes se incluirán en tu bundle de producción.',ko:'라이브러리는 완전히 트리 쉐이킹이 가능해요. import한 함수만 프로덕션 번들에 포함돼요.',tip:'named export 방식이 default export보다 tree-shaking에 유리해요'},
+    {en:'This hook must be used inside a component that is wrapped by the corresponding Provider component.',es:'Este hook debe usarse dentro de un componente que esté envuelto por el componente Provider correspondiente.',ko:'이 훅은 해당 Provider 컴포넌트로 감싸진 컴포넌트 내부에서 사용해야 해요.',tip:'Context 훅은 해당 Context의 Provider 하위 컴포넌트에서만 사용할 수 있어요'},
+    {en:'For production deployments, always set the secure flag to true on session cookies to prevent transmission over HTTP.',es:'Para despliegues de producción, siempre establece el indicador secure en true en las cookies de sesión para evitar la transmisión por HTTP.',ko:'프로덕션 배포에서 HTTP를 통한 전송을 방지하기 위해 세션 쿠키에 항상 secure 플래그를 true로 설정해요.',tip:'secure 쿠키는 HTTPS 연결에서만 전송돼요. 보안을 위해 필수예요'},
+    {en:'The package ships with both CommonJS and ES Module builds. Your bundler will automatically choose the correct format.',es:'El paquete incluye tanto builds de CommonJS como de ES Module. Tu bundler elegirá automáticamente el formato correcto.',ko:'패키지는 CommonJS와 ES 모듈 빌드를 모두 제공해요. 번들러가 자동으로 올바른 형식을 선택해요.',tip:'dual package = CJS와 ESM을 모두 지원하는 패키지예요. package.json의 exports 필드로 설정해요'},
+    {en:'The rate limiter uses a sliding window algorithm which provides smoother traffic distribution than fixed windows.',es:'El limitador de velocidad usa un algoritmo de ventana deslizante que proporciona una distribución de tráfico más suave que las ventanas fijas.',ko:'속도 제한기는 고정 윈도우보다 더 부드러운 트래픽 분산을 제공하는 슬라이딩 윈도우 알고리즘을 사용해요.',tip:'sliding window = 시간 윈도우가 고정되지 않고 요청마다 이동하는 알고리즘이에요'},
+    {en:'The build output includes source maps by default in development mode. They are disabled in production to reduce bundle size.',es:'La salida de compilación incluye mapas de fuente por defecto en modo de desarrollo. Se deshabilitan en producción para reducir el tamaño del bundle.',ko:'빌드 출력은 개발 모드에서 기본적으로 소스 맵을 포함해요. 번들 크기를 줄이기 위해 프로덕션에서는 비활성화돼요.',tip:'소스 맵은 번들된 코드를 원본 코드에 매핑해줘서 디버깅에 필수예요'},
+    {en:'When the cache is invalidated, all dependent computed values will be recalculated on their next access.',es:'Cuando el caché se invalida, todos los valores calculados dependientes se recalcularán en su próximo acceso.',ko:'캐시가 무효화되면 모든 종속 계산 값이 다음 접근 시 재계산돼요.',tip:'cache invalidation = 언제 캐시를 갱신할지 결정하는 것이에요'},
+    {en:'The constructor will throw a TypeError if required options are missing. Check the options schema for required fields.',es:'El constructor lanzará un TypeError si faltan opciones requeridas. Verifica el esquema de opciones para los campos requeridos.',ko:'필수 옵션이 없으면 생성자가 TypeError를 던져요. 필수 필드에 대한 옵션 스키마를 확인해요.',tip:'옵션 유효성 검사를 생성자에서 일찍 수행하는 것이 fail-fast 패턴이에요'}
+  ],
+  [ // 2: GitHub/SO
+    {en:'This is a known issue. A workaround is to use...',es:'Este es un problema conocido. Una solución temporal es usar...',ko:'알려진 문제예요. 임시 해결책은 ...을 사용하는 거예요.',tip:'workaround = 임시 방편. 완전한 해결책은 아닌 거예요'},
+    {en:'Pull requests are welcome!',es:'¡Las solicitudes de extracción son bienvenidas!',ko:'PR 환영해요!',tip:'오픈소스 기여를 권장한다는 뜻이에요'},
+    {en:'Can you share a minimal reproducible example?',es:'¿Puedes compartir un ejemplo mínimo reproducible?',ko:'최소한의 재현 가능한 예시를 공유해줄 수 있나요?',tip:'Stack Overflow에서 꼭 요구해요. MRE라고도 해요'},
+    {en:'Closing this issue as out of scope.',es:'Cerrando este problema por estar fuera del alcance.',ko:'범위를 벗어나므로 이 이슈를 닫아요.',tip:'out of scope = 프로젝트 범위 밖이라는 뜻이에요'},
+    {en:'LGTM! Merging this in.',es:'¡Se ve bien! Fusionando esto.',ko:'좋아 보여요! 머지할게요.',tip:'LGTM = Looks Good To Me. 코드 리뷰 승인할 때 써요'},
+    {en:'Could you rebase on main before merging?',es:'¿Podrías hacer rebase en main antes de fusionar?',ko:'머지 전에 main에 rebase 해줄 수 있어요?',tip:'rebase = 최신 브랜치 변경사항을 내 브랜치에 적용하는 거예요'},
+    {en:'This issue has been fixed in version 2.0.',es:'Este problema se ha corregido en la versión 2.0.',ko:'이 문제는 버전 2.0에서 수정됐어요.',tip:'has been fixed = 이미 고쳐진 상태라는 현재완료 표현이에요'},
+    {en:'Have you tried clearing your cache?',es:'¿Has intentado borrar tu caché?',ko:'캐시를 지워봤나요?',tip:'개발 문제의 절반은 캐시 때문이에요 😅'},
+    {en:'What version of Node are you running?',es:'¿Qué versión de Node estás ejecutando?',ko:'어떤 버전의 Node를 실행 중인가요?',tip:'버그 리포트 시 버전 정보는 필수예요'},
+    {en:'Duplicate of #123',es:'Duplicado de #123',ko:'#123의 중복이에요',tip:'이미 있는 이슈와 같다고 표시할 때 써요'},
+    {en:'This PR is ready for review.',es:'Este PR está listo para revisión.',ko:'이 PR은 리뷰 준비가 됐어요.',tip:'PR을 올린 후 리뷰 요청할 때 쓰는 표현이에요'},
+    {en:'Can you paste the full error stack trace?',es:'¿Puedes pegar el stack trace completo del error?',ko:'전체 에러 스택 트레이스를 붙여넣어 줄 수 있어요?',tip:'stack trace = 에러가 발생한 코드 경로 전체예요'},
+    {en:'Works on my machine.',es:'Funciona en mi máquina.',ko:'제 컴퓨터에서는 작동해요.',tip:'개발자들 사이의 유명한 밈이에요 😄'},
+    {en:'I\'m not able to reproduce this locally.',es:'No puedo reproducir esto localmente.',ko:'로컬에서 이것을 재현할 수 없어요.',tip:'reproduce = 동일한 문제를 다시 만들어낸다는 뜻이에요'},
+    {en:'This has been tracked in our roadmap.',es:'Esto se ha incluido en nuestra hoja de ruta.',ko:'이것은 로드맵에 포함됐어요.',tip:'roadmap = 앞으로의 개발 계획이에요'},
+    {en:'This is by design.',es:'Esto es por diseño.',ko:'이것은 의도된 동작이에요.',tip:'버그가 아니라 의도적인 기능이라고 말할 때 써요'},
+    {en:'I\'ll submit a hotfix for this.',es:'Enviaré un hotfix para esto.',ko:'이것에 대한 핫픽스를 제출할게요.',tip:'hotfix = 긴급하게 배포하는 수정 패치예요'},
+    {en:'Good first issue',es:'Buena primera contribución',ko:'첫 기여하기 좋은 이슈',tip:'초보자가 기여하기 좋은 이슈에 붙이는 라벨이에요'},
+    {en:'Help wanted',es:'Se busca ayuda',ko:'도움이 필요해요',tip:'커뮤니티의 도움을 요청하는 라벨이에요'},
+    {en:'Needs more info',es:'Necesita más información',ko:'더 많은 정보가 필요해요',tip:'이슈 재현에 정보가 부족할 때 붙이는 라벨이에요'},
+    {en:'This is not a bug, it\'s a feature request.',es:'Esto no es un error, es una solicitud de función.',ko:'이것은 버그가 아니라 기능 요청이에요.',tip:'버그 리포트로 올라온 기능 요청을 구분할 때 써요'},
+    {en:'Stale issue. Closing due to inactivity.',es:'Issue antiguo. Cerrando por inactividad.',ko:'오래된 이슈예요. 비활성으로 인해 닫아요.',tip:'stale = 오래되어 더 이상 관련 없는 이슈예요'},
+    {en:'Does this happen consistently or intermittently?',es:'¿Sucede de manera consistente o intermitente?',ko:'항상 발생하나요, 아니면 가끔 발생하나요?',tip:'intermittently = 가끔씩, 불규칙하게라는 뜻이에요'},
+    {en:'Please check if this is still an issue on the latest release.',es:'Comprueba si esto sigue siendo un problema en la última versión.',ko:'최신 릴리즈에서도 여전히 문제인지 확인해주세요.',tip:'최신 버전에서 이미 수정됐을 수 있어요'},
+    {en:'This requires a major refactor.',es:'Esto requiere una refactorización importante.',ko:'이것은 대규모 리팩토링이 필요해요.',tip:'refactor = 기능은 유지하면서 코드 구조를 개선하는 거예요'},
+    {en:'Thanks for the detailed report!',es:'¡Gracias por el informe detallado!',ko:'자세한 리포트 감사해요!',tip:'좋은 버그 리포트에 감사할 때 쓰는 표현이에요'},
+    {en:'I\'ll take a look at this over the weekend.',es:'Le echaré un vistazo este fin de semana.',ko:'주말에 이것을 살펴볼게요.',tip:'take a look = 확인하겠다는 캐주얼한 표현이에요'},
+    {en:'Blocked by #456',es:'Bloqueado por #456',ko:'#456에 의해 막혀있어요',tip:'다른 이슈가 해결돼야 진행 가능하다는 뜻이에요'},
+    {en:'In progress',es:'En progreso',ko:'진행 중이에요',tip:'누군가 작업 중이라는 상태 표시예요'},
+    {en:'Pinned for visibility.',es:'Fijado para visibilidad.',ko:'가시성을 위해 고정했어요.',tip:'중요한 이슈나 공지를 상단에 고정할 때 써요'},
+    {en:'I\'ve run the failing tests in isolation and they all pass. It seems to be an issue with test ordering in the CI environment.',es:'He ejecutado las pruebas fallidas de forma aislada y todas pasan. Parece ser un problema con el orden de las pruebas en el entorno de CI.',ko:'실패하는 테스트를 독립적으로 실행했는데 모두 통과해요. CI 환경의 테스트 순서 문제인 것 같아요.',tip:'테스트 간 의존성이 있으면 순서에 따라 다른 결과가 나와요. 테스트를 독립적으로 만들어요'},
+    {en:'This approach works but it\'s not idiomatic. I\'d suggest refactoring to follow the established patterns in the codebase.',es:'Este enfoque funciona pero no es idiomático. Sugeriría refactorizar para seguir los patrones establecidos en el código base.',ko:'이 접근 방식은 작동하지만 관용적이지 않아요. 코드베이스의 확립된 패턴을 따르도록 리팩토링을 제안해요.',tip:'idiomatic = 해당 언어/프레임워크의 일반적인 관행을 따르는 코드예요'},
+    {en:'The issue reproduces on Safari but not on Chrome or Firefox. Likely a browser-specific compatibility issue.',es:'El problema se reproduce en Safari pero no en Chrome o Firefox. Probablemente sea un problema de compatibilidad específico del navegador.',ko:'Safari에서는 재현되지만 Chrome이나 Firefox에서는 안 돼요. 브라우저별 호환성 문제일 가능성이 높아요.',tip:'caniuse.com 에서 브라우저 호환성을 확인해요'},
+    {en:'Approved — this is a clean, well-tested implementation. Shipping this in the next release.',es:'Aprobado — esta es una implementación limpia y bien probada. Incluyéndola en la próxima versión.',ko:'승인했어요 — 깔끔하고 잘 테스트된 구현이에요. 다음 릴리즈에 포함시킬게요.',tip:'코드 리뷰 승인 후 릴리즈 포함 결정을 함께 알리는 표현이에요'},
+    {en:'Could you provide a test case that demonstrates the performance regression you mentioned?',es:'¿Podrías proporcionar un caso de prueba que demuestre la regresión de rendimiento que mencionaste?',ko:'언급한 성능 회귀를 보여주는 테스트 케이스를 제공해줄 수 있나요?',tip:'성능 문제 리포트 시 측정 가능한 벤치마크를 제공하면 해결이 빨라요'},
+    {en:'I\'ve opened a separate issue to track the related performance improvements. Linking it here for reference.',es:'He abierto un issue separado para rastrear las mejoras de rendimiento relacionadas. Lo enlazo aquí para referencia.',ko:'관련 성능 개선 사항을 추적하기 위한 별도 이슈를 열었어요. 참고용으로 여기에 링크해요.',tip:'관련 이슈를 서로 링크해두면 전체 맥락을 파악하기 쉬워요'},
+    {en:'We\'re going to need a RFC for this change. The API surface is significant enough to warrant broader community input.',es:'Vamos a necesitar un RFC para este cambio. La superficie de API es lo suficientemente significativa como para justificar una mayor participación de la comunidad.',ko:'이 변경에 RFC가 필요할 거예요. API 인터페이스가 더 넓은 커뮤니티 의견을 정당화할 만큼 중요해요.',tip:'RFC = Request for Comments. 큰 변경 전에 커뮤니티 피드백을 수렴하는 프로세스예요'},
+    {en:'The PR template is there for a reason — please fill out all sections before requesting a review.',es:'La plantilla de PR existe por una razón — por favor, completa todas las secciones antes de solicitar una revisión.',ko:'PR 템플릿은 이유가 있어서 있어요 — 리뷰를 요청하기 전에 모든 섹션을 작성해주세요.',tip:'PR 템플릿을 성실히 작성하면 리뷰 속도가 빨라져요'},
+    {en:'Marking this as a critical regression. We\'ll need to ship a patch release today.',es:'Marcando esto como una regresión crítica. Necesitaremos lanzar una versión de parche hoy.',ko:'이것을 중요 회귀로 표시해요. 오늘 패치 릴리즈를 배포해야 해요.',tip:'critical regression = 이전에 작동하던 기능이 갑자기 망가진 심각한 버그예요'},
+    {en:'This implementation has O(n²) complexity. For large datasets this will be unacceptably slow.',es:'Esta implementación tiene complejidad O(n²). Para grandes conjuntos de datos esto será inaceptablemente lento.',ko:'이 구현은 O(n²) 복잡도예요. 대용량 데이터셋에서는 허용할 수 없을 만큼 느릴 거예요.',tip:'O(n²) = 데이터가 2배로 늘면 처리 시간이 4배로 늘어나는 알고리즘이에요'},
+    {en:'The feature has shipped. Thanks everyone who contributed to this one — it was a long road!',es:'La función ha sido lanzada. ¡Gracias a todos los que contribuyeron a esto — fue un largo camino!',ko:'기능이 출시됐어요. 기여해주신 모든 분들께 감사해요 — 긴 여정이었어요!',tip:'기능 출시 시 기여자들에게 감사를 표하는 것이 좋은 문화예요'},
+    {en:'Reverting this PR — it broke the main branch build and we need to unblock other developers.',es:'Revirtiendo este PR — rompió la compilación de la rama principal y necesitamos desbloquear a otros desarrolladores.',ko:'이 PR을 되돌려요 — main 브랜치 빌드를 깨뜨렸고 다른 개발자들의 작업을 열어줘야 해요.',tip:'빌드를 깨는 변경은 빠르게 revert하고 수정 후 다시 올려요'},
+    {en:'This bug only manifests when the cache layer is involved. Disabling the cache works around it but isn\'t a real fix.',es:'Este error solo se manifiesta cuando interviene la capa de caché. Deshabilitar el caché es una solución provisional pero no es una solución real.',ko:'이 버그는 캐시 레이어가 관련될 때만 나타나요. 캐시를 비활성화하면 해결되지만 진짜 수정은 아니에요.',tip:'workaround vs real fix 를 구분하는 것이 중요해요'},
+    {en:'Could you run the full test suite locally before pushing? Several tests seem to have been broken by this change.',es:'¿Podrías ejecutar la suite completa de pruebas localmente antes de hacer push? Parece que varios tests han sido rotos por este cambio.',ko:'push하기 전에 로컬에서 전체 테스트 스위트를 실행해줄 수 있나요? 이 변경으로 여러 테스트가 깨진 것 같아요.',tip:'CI에 의존하기 전에 로컬에서 테스트를 실행하는 것이 팀 규범이에요'},
+    {en:'I\'ll triage this issue and assign it to the appropriate team member.',es:'Clasificaré este issue y lo asignaré al miembro del equipo apropiado.',ko:'이 이슈를 분류하고 적절한 팀원에게 할당할게요.',tip:'triage = 이슈의 우선순위와 담당자를 결정하는 과정이에요'},
+    {en:'The nightly build is failing due to this change. Please investigate and fix before EOD.',es:'La compilación nocturna está fallando debido a este cambio. Por favor, investiga y corrige antes de fin del día.',ko:'이 변경으로 인해 야간 빌드가 실패하고 있어요. EOD 전에 조사하고 수정해주세요.',tip:'nightly build = 매일 밤 자동으로 실행되는 전체 빌드예요. EOD = End of Day'},
+    {en:'Adding the \'needs-design-input\' label — we should align with the design team before implementing this.',es:'Agregando la etiqueta \'needs-design-input\' — deberíamos alinearnos con el equipo de diseño antes de implementar esto.',ko:'\'needs-design-input\' 라벨을 추가해요 — 이것을 구현하기 전에 디자인 팀과 맞춰야 해요.',tip:'라벨을 활용해 이슈의 상태와 필요 사항을 명확히 해요'},
+    {en:'The fix looks good to me. However, I\'d like a second pair of eyes on this since it touches the billing code.',es:'La corrección me parece bien. Sin embargo, me gustaría que alguien más lo revise ya que toca el código de facturación.',ko:'수정 사항이 좋아 보여요. 하지만 결제 코드를 건드리기 때문에 다른 사람의 검토도 받고 싶어요.',tip:'결제/보안 코드는 항상 추가 검토자를 요청하는 것이 좋아요'},
+    {en:'This is a great quality-of-life improvement. Shipping it as a minor release since it\'s non-breaking.',es:'Esta es una excelente mejora de calidad de vida. La lanzaremos como una versión menor ya que no rompe compatibilidad.',ko:'이것은 훌륭한 사용 편의성 개선이에요. 호환성을 깨지 않으므로 마이너 릴리즈로 출시해요.',tip:'quality-of-life = 사용자 경험을 개선하는 기능이에요. non-breaking = 기존 코드에 영향 없는 변경이에요'},
+    {en:'Transferred this issue to the documentation repository since it\'s about missing or incorrect docs.',es:'Transferí este issue al repositorio de documentación ya que se trata de documentación faltante o incorrecta.',ko:'누락되거나 잘못된 문서에 관한 것이어서 이 이슈를 문서 저장소로 이전했어요.',tip:'이슈를 올바른 저장소로 이전해 관리하는 것이 좋은 관행이에요'}
+  ],
+  [ // 3: 검색어
+    {en:'how to fix CORS error in Express',es:'cómo solucionar error CORS en Express',ko:'Express에서 CORS 에러 해결하는 방법',tip:'how to fix + 에러명 패턴이 가장 효과적이에요'},
+    {en:'difference between null and undefined JavaScript',es:'diferencia entre null y undefined JavaScript',ko:'JavaScript에서 null과 undefined의 차이',tip:'difference between A and B 패턴 자주 써요'},
+    {en:'React useEffect cleanup function example',es:'ejemplo de función cleanup useEffect React',ko:'React useEffect cleanup 함수 예제',tip:'기술명 + 키워드 + example 패턴이 좋아요'},
+    {en:'async await error handling best practices',es:'mejores prácticas manejo errores async await',ko:'async await 에러 처리 모범 사례',tip:'best practices 붙이면 고품질 답변이 나와요'},
+    {en:'CSS flexbox center div vertically horizontally',es:'CSS flexbox centrar div vertical horizontalmente',ko:'CSS flexbox로 div 수직 수평 가운데 정렬',tip:'동사 없이 키워드만 나열해도 잘 검색돼요'},
+    {en:'git undo last commit keep changes',es:'git deshacer último commit conservar cambios',ko:'git 마지막 커밋 취소하고 변경사항 유지하기',tip:'명령어 + 원하는 동작 조합이 효과적이에요'},
+    {en:'TypeScript interface vs type alias when to use',es:'TypeScript interface vs type alias cuándo usar',ko:'TypeScript interface vs type alias 언제 써야 하나',tip:'when to use 붙이면 비교 글이 잘 나와요'},
+    {en:'Docker container keeps restarting fix',es:'contenedor Docker sigue reiniciando solución',ko:'Docker 컨테이너가 계속 재시작할 때 해결법',tip:'문제 상황 + fix/solution 조합이에요'},
+    {en:'JavaScript debounce vs throttle difference',es:'diferencia debounce vs throttle JavaScript',ko:'JavaScript debounce와 throttle 차이',tip:'vs 키워드로 비교 검색하면 좋아요'},
+    {en:'React state management 2024',es:'gestión de estado React 2024',ko:'React 상태 관리 2024',tip:'연도를 붙이면 최신 정보를 얻을 수 있어요'},
+    {en:'how to deploy Next.js to Vercel',es:'cómo desplegar Next.js en Vercel',ko:'Next.js를 Vercel에 배포하는 방법',tip:'how to deploy + 기술 + 플랫폼 패턴이에요'},
+    {en:'SQL JOIN types explained with examples',es:'tipos de JOIN en SQL explicados con ejemplos',ko:'예제로 설명하는 SQL JOIN 유형',tip:'explained with examples 붙이면 이해하기 쉬운 글이 나와요'},
+    {en:'webpack bundle size optimization',es:'optimización tamaño bundle webpack',ko:'webpack 번들 크기 최적화',tip:'기술 + optimization 조합이 자주 써요'},
+    {en:'REST API design best practices',es:'mejores prácticas diseño REST API',ko:'REST API 설계 모범 사례',tip:'설계 관련 질문엔 best practices가 핵심이에요'},
+    {en:'git rebase vs merge which to use',es:'git rebase vs merge cuál usar',ko:'git rebase vs merge 어느 걸 써야 하나',tip:'개발 도구 비교는 vs + which to use 패턴이 좋아요'},
+    {en:'JavaScript memory leak how to detect',es:'fuga de memoria JavaScript cómo detectar',ko:'JavaScript 메모리 누수 감지하는 방법',tip:'문제 + how to detect/fix 패턴이에요'},
+    {en:'how to set up ESLint Prettier together',es:'cómo configurar ESLint Prettier juntos',ko:'ESLint Prettier 함께 설정하는 방법',tip:'도구 설정은 how to set up 패턴이 좋아요'},
+    {en:'Node.js environment variables .env file',es:'variables de entorno Node.js archivo .env',ko:'Node.js 환경 변수 .env 파일',tip:'기술 + 구체적인 파일/기능명 조합이에요'},
+    {en:'React performance optimization hooks',es:'optimización rendimiento React hooks',ko:'React 성능 최적화 훅',tip:'성능 관련 검색엔 optimization + 기술이에요'},
+    {en:'PostgreSQL vs MySQL 2024 comparison',es:'comparación PostgreSQL vs MySQL 2024',ko:'PostgreSQL vs MySQL 2024 비교',tip:'DB 선택 시 연도와 comparison을 함께 써요'},
+    {en:'how to handle async errors in JavaScript',es:'cómo manejar errores asíncronos en JavaScript',ko:'JavaScript에서 비동기 에러 처리하는 방법',tip:'handle + 문제 유형 패턴이 효과적이에요'},
+    {en:'Docker compose tutorial for beginners',es:'tutorial Docker compose para principiantes',ko:'초보자를 위한 Docker compose 튜토리얼',tip:'처음 배울 때는 tutorial for beginners가 좋아요'},
+    {en:'TypeScript generic types examples',es:'ejemplos de tipos genéricos TypeScript',ko:'TypeScript 제네릭 타입 예제',tip:'어려운 개념은 + examples로 검색해요'},
+    {en:'how to debug React component',es:'cómo depurar componente React',ko:'React 컴포넌트 디버깅하는 방법',tip:'how to debug + 기술/컴포넌트 패턴이에요'},
+    {en:'microservices vs monolith pros cons',es:'microservicios vs monolito ventajas desventajas',ko:'마이크로서비스 vs 모놀리식 장단점',tip:'아키텍처 비교는 pros cons/advantages를 붙여요'},
+    {en:'CSS animation performance tips',es:'consejos rendimiento animaciones CSS',ko:'CSS 애니메이션 성능 팁',tip:'performance + tips 조합이 실용적이에요'},
+    {en:'npm package security vulnerability audit',es:'auditoría vulnerabilidades seguridad npm',ko:'npm 패키지 보안 취약점 감사',tip:'기술 + security/vulnerability 조합이에요'},
+    {en:'Python vs JavaScript for backend development',es:'Python vs JavaScript para desarrollo backend',ko:'백엔드 개발에서 Python vs JavaScript',tip:'기술 선택 고민할 때 vs 검색이 효과적이에요'},
+    {en:'how to read stack trace Node.js',es:'cómo leer stack trace Node.js',ko:'Node.js 스택 트레이스 읽는 방법',tip:'how to read/understand + 기술 패턴이에요'},
+    {en:'CSS grid vs flexbox comparison',es:'comparación CSS grid vs flexbox',ko:'CSS grid vs flexbox 비교',tip:'레이아웃 선택 고민할 때 자주 검색해요'},
+    {en:'how to implement dark mode with CSS variables and JavaScript toggle',es:'cómo implementar modo oscuro con variables CSS y toggle de JavaScript',ko:'CSS 변수와 JavaScript 토글로 다크 모드 구현하는 방법',tip:'CSS 변수 + localStorage 조합이 가장 일반적인 다크 모드 구현 방법이에요'},
+    {en:'JavaScript optional chaining nullish coalescing operator explained',es:'encadenamiento opcional de JavaScript operador de fusión nula explicado',ko:'JavaScript 옵셔널 체이닝 nullish 병합 연산자 설명',tip:'?. 와 ?? 연산자는 undefined/null 처리를 깔끔하게 해줘요'},
+    {en:'how to implement debounce and throttle from scratch JavaScript',es:'cómo implementar debounce y throttle desde cero en JavaScript',ko:'JavaScript에서 debounce와 throttle을 처음부터 구현하는 방법',tip:'from scratch = 라이브러리 없이 직접 구현한다는 뜻이에요'},
+    {en:'Next.js app router vs pages router migration guide 2024',es:'guía de migración app router vs pages router de Next.js 2024',ko:'Next.js app router vs pages router 마이그레이션 가이드 2024',tip:'Next.js 13+ App Router는 서버 컴포넌트를 기본으로 사용해요'},
+    {en:'how to implement custom React hooks with TypeScript examples',es:'cómo implementar hooks de React personalizados con ejemplos de TypeScript',ko:'TypeScript 예제와 함께 커스텀 React 훅 구현하는 방법',tip:'커스텀 훅은 로직을 재사용 가능한 함수로 분리하는 패턴이에요'},
+    {en:'Node.js best practices project structure folder organization 2024',es:'mejores prácticas de Node.js estructura de proyecto organización de carpetas 2024',ko:'Node.js 모범 사례 프로젝트 구조 폴더 구성 2024',tip:'project structure + best practices 조합은 대규모 프로젝트 설계에 필수예요'},
+    {en:'how to fix slow React rendering performance profiler optimization',es:'cómo solucionar el renderizado lento de React optimización del perfilador de rendimiento',ko:'느린 React 렌더링 수정 방법 성능 프로파일러 최적화',tip:'React DevTools Profiler로 어떤 컴포넌트가 느린지 찾아요'},
+    {en:'CSS responsive design breakpoints mobile first approach',es:'puntos de ruptura de diseño responsivo CSS enfoque mobile first',ko:'CSS 반응형 디자인 브레이크포인트 모바일 퍼스트 방식',tip:'모바일 퍼스트 = 작은 화면부터 시작해서 큰 화면으로 확장하는 방식이에요'},
+    {en:'how to deploy Docker container to AWS EC2 step by step tutorial',es:'cómo desplegar un contenedor Docker en AWS EC2 tutorial paso a paso',ko:'AWS EC2에 Docker 컨테이너 배포하는 방법 단계별 튜토리얼',tip:'Docker + 클라우드 플랫폼 + step by step tutorial 패턴이에요'},
+    {en:'JavaScript promise.all vs promise.allSettled vs promise.race comparison',es:'comparación de promise.all vs promise.allSettled vs promise.race en JavaScript',ko:'JavaScript promise.all vs promise.allSettled vs promise.race 비교',tip:'세 가지 Promise 조합 메서드의 차이를 이해하면 비동기 코드가 깔끔해져요'},
+    {en:'how to secure REST API Node.js authentication authorization best practices',es:'cómo asegurar la API REST Node.js mejores prácticas de autenticación y autorización',ko:'REST API Node.js 보안 방법 인증 인가 모범 사례',tip:'security + authentication + authorization 조합의 포괄적인 검색이에요'},
+    {en:'Tailwind CSS vs Bootstrap comparison which to choose for new project',es:'comparación de Tailwind CSS vs Bootstrap cuál elegir para un nuevo proyecto',ko:'Tailwind CSS vs Bootstrap 비교 새 프로젝트에 어느 것을 선택해야 하나',tip:'CSS 프레임워크 선택 + which to choose for new project 패턴이에요'},
+    {en:'how to implement lazy loading images React Intersection Observer API',es:'cómo implementar carga diferida de imágenes React API Intersection Observer',ko:'React Intersection Observer API로 이미지 지연 로딩 구현하는 방법',tip:'성능 최적화 + API 조합 패턴이에요'},
+    {en:'database transaction isolation levels explained with examples',es:'niveles de aislamiento de transacciones de base de datos explicados con ejemplos',ko:'예제와 함께 설명하는 데이터베이스 트랜잭션 격리 수준',tip:'격리 수준 = 동시 트랜잭션이 서로에게 미치는 영향 정도를 제어해요'},
+    {en:'how to write integration tests Node.js Express supertest jest',es:'cómo escribir pruebas de integración Node.js Express supertest jest',ko:'Node.js Express supertest jest로 통합 테스트 작성하는 방법',tip:'통합 테스트는 여러 모듈이 함께 작동하는지 테스트해요'},
+    {en:'React query vs SWR data fetching library comparison pros cons',es:'comparación de React query vs SWR biblioteca de obtención de datos pros contras',ko:'React Query vs SWR 데이터 패칭 라이브러리 비교 장단점',tip:'두 라이브러리 모두 서버 상태 관리를 위한 강력한 도구예요'},
+    {en:'how to handle form validation React Hook Form Zod TypeScript',es:'cómo manejar la validación de formularios React Hook Form Zod TypeScript',ko:'React Hook Form Zod TypeScript로 폼 유효성 검사 처리하는 방법',tip:'폼 + 유효성 검사 + 타입 안전성을 한 번에 해결하는 조합이에요'},
+    {en:'Git flow vs trunk based development which branching strategy to use',es:'Git flow vs desarrollo basado en trunk qué estrategia de ramificación usar',ko:'Git flow vs 트렁크 기반 개발 어떤 브랜치 전략을 사용해야 하나',tip:'브랜치 전략 비교 + which to use 패턴이에요'},
+    {en:'how to implement search autocomplete debounce React TypeScript',es:'cómo implementar autocompletado de búsqueda debounce React TypeScript',ko:'React TypeScript로 검색 자동완성 디바운스 구현하는 방법',tip:'실시간 검색 구현에 debounce는 필수예요. API 호출 횟수를 줄여줘요'},
+    {en:'kubernetes vs docker swarm container orchestration comparison 2024',es:'comparación de orquestación de contenedores kubernetes vs docker swarm 2024',ko:'컨테이너 오케스트레이션 kubernetes vs docker swarm 비교 2024',tip:'컨테이너 오케스트레이션 도구 비교 + 연도 패턴이에요'}
+  ],
+  [ // 4: 커뮤니케이션
+    {en:'I\'ll look into this and get back to you.',es:'Investigaré esto y te responderé.',ko:'이 부분 확인하고 다시 알려드릴게요.',tip:'확인 후 답변하겠다는 정중한 표현이에요'},
+    {en:'Could you clarify what you mean by...?',es:'¿Podrías aclarar qué quieres decir con...?',ko:'...이 무슨 뜻인지 명확히 해줄 수 있어요?',tip:'Could you ~? 는 정중한 요청 표현이에요'},
+    {en:'This is blocked by the backend team.',es:'Esto está bloqueado por el equipo de backend.',ko:'이건 백엔드 팀에 의해 막혀있어요.',tip:'blocked by = ~때문에 진행이 막혔다는 뜻이에요'},
+    {en:'I\'ll submit a PR by end of day.',es:'Enviaré un PR antes de que termine el día.',ko:'오늘 중으로 PR 올릴게요.',tip:'by end of day = 오늘 퇴근 전까지라는 뜻이에요'},
+    {en:'Let\'s sync up tomorrow morning.',es:'Sincronicémonos mañana por la mañana.',ko:'내일 아침에 싱크 맞춰요.',tip:'sync up = 서로 상황 공유한다는 개발 용어예요'},
+    {en:'I need more context to estimate this task.',es:'Necesito más contexto para estimar esta tarea.',ko:'이 작업을 추정하려면 더 많은 맥락이 필요해요.',tip:'context = 배경 정보/맥락이라는 뜻이에요'},
+    {en:'This is out of scope for this sprint.',es:'Esto está fuera del alcance de este sprint.',ko:'이건 이번 스프린트 범위 밖이에요.',tip:'out of scope = 지금 작업 범위 밖이라는 뜻이에요'},
+    {en:'I\'ll add this to the backlog.',es:'Lo añadiré al backlog.',ko:'이거 백로그에 추가할게요.',tip:'backlog = 나중에 할 작업 목록이에요'},
+    {en:'The fix is deployed to staging.',es:'La corrección está desplegada en staging.',ko:'수정 사항이 스테이징에 배포됐어요.',tip:'staging = 실제 서비스 전 테스트 환경이에요'},
+    {en:'Can we hop on a quick call?',es:'¿Podemos hacer una llamada rápida?',ko:'잠깐 통화할 수 있어요?',tip:'hop on a call = 전화/화상 통화 하자는 표현이에요'},
+    {en:'I\'m currently blocked on this.',es:'Actualmente estoy bloqueado en esto.',ko:'현재 이 부분에서 막혀있어요.',tip:'blocked = 진행을 못 하고 있다는 상태 표현이에요'},
+    {en:'Let me ping the DevOps team.',es:'Déjame hacer ping al equipo de DevOps.',ko:'DevOps 팀에 연락해볼게요.',tip:'ping = 메시지 보내다, 연락하다는 뜻이에요'},
+    {en:'I\'ll create a ticket for this.',es:'Crearé un ticket para esto.',ko:'이것에 대한 티켓을 만들게요.',tip:'ticket = Jira, Linear 같은 이슈 트래커의 작업 항목이에요'},
+    {en:'ETA is end of next week.',es:'La fecha estimada es a finales de la próxima semana.',ko:'예상 완료 시간은 다음 주 말이에요.',tip:'ETA = Estimated Time of Arrival. 완료 예정 시간이에요'},
+    {en:'Let\'s table this for now.',es:'Dejemos esto pendiente por ahora.',ko:'이건 일단 보류해요.',tip:'table = 미국 영어에서 나중으로 미룬다는 뜻이에요'},
+    {en:'I\'ll need to loop in the security team.',es:'Necesitaré incluir al equipo de seguridad.',ko:'보안 팀을 참여시켜야 할 것 같아요.',tip:'loop in = 대화에 누군가를 포함시킨다는 뜻이에요'},
+    {en:'This is a P1 issue.',es:'Este es un problema P1.',ko:'이건 P1 이슈예요.',tip:'P1 = Priority 1. 가장 긴급한 이슈예요'},
+    {en:'Can you take ownership of this?',es:'¿Puedes asumir la responsabilidad de esto?',ko:'이것을 맡아줄 수 있어요?',tip:'take ownership = 책임지고 처리한다는 뜻이에요'},
+    {en:'We need to align on requirements before starting.',es:'Necesitamos alinearnos en los requisitos antes de empezar.',ko:'시작 전에 요구사항을 맞춰야 해요.',tip:'align on = 서로 같은 이해를 갖는다는 뜻이에요'},
+    {en:'This is a nice-to-have, not a must-have.',es:'Esto es algo deseable, no imprescindible.',ko:'이건 있으면 좋은 거지, 필수는 아니에요.',tip:'nice-to-have vs must-have 구분은 기획에서 중요해요'},
+    {en:'Let\'s do a quick sanity check.',es:'Hagamos una verificación rápida.',ko:'빠르게 검토해봐요.',tip:'sanity check = 기본적인 것들이 맞는지 확인한다는 뜻이에요'},
+    {en:'We\'re on track for the deadline.',es:'Estamos en camino para cumplir el plazo.',ko:'마감일에 맞게 진행 중이에요.',tip:'on track = 계획대로 진행되고 있다는 뜻이에요'},
+    {en:'This might have downstream effects.',es:'Esto podría tener efectos posteriores.',ko:'이건 다운스트림 영향이 있을 수 있어요.',tip:'downstream = 이 변경이 다른 곳에 영향을 준다는 뜻이에요'},
+    {en:'This is a regression from the last release.',es:'Esto es una regresión de la última versión.',ko:'이건 마지막 릴리즈에서 생긴 회귀 버그예요.',tip:'regression = 이전엔 됐는데 이번 업데이트 후 망가진 거예요'},
+    {en:'We should add monitoring for this.',es:'Deberíamos agregar monitoreo para esto.',ko:'이것에 대한 모니터링을 추가해야 해요.',tip:'monitoring = 서비스 상태를 지속적으로 추적하는 거예요'},
+    {en:'I\'ll flag this for the next sprint planning.',es:'Lo marcaré para la próxima planificación de sprint.',ko:'다음 스프린트 플래닝에서 이것을 다룰게요.',tip:'flag = 표시해서 나중에 다루겠다는 뜻이에요'},
+    {en:'Can you share your screen?',es:'¿Puedes compartir tu pantalla?',ko:'화면 공유해줄 수 있어요?',tip:'화상 미팅에서 자주 쓰는 표현이에요'},
+    {en:'I\'ll document this in Confluence.',es:'Lo documentaré en Confluence.',ko:'Confluence에 문서화할게요.',tip:'문서화는 팀 협업에서 매우 중요해요'},
+    {en:'Let\'s move this offline.',es:'Movamos esto a una conversación privada.',ko:'이건 따로 얘기해요.',tip:'move offline = 별도 채널에서 이야기하자는 표현이에요'},
+    {en:'This needs a design review first.',es:'Esto necesita una revisión de diseño primero.',ko:'이건 먼저 디자인 리뷰가 필요해요.',tip:'단계를 명확히 할 때 first를 붙여요'},
+    {en:'I\'ve identified a potential security vulnerability in this component. I\'m going to loop in the security team before we proceed.',es:'He identificado una posible vulnerabilidad de seguridad en este componente. Voy a incluir al equipo de seguridad antes de proceder.',ko:'이 컴포넌트에서 잠재적인 보안 취약점을 발견했어요. 진행 전에 보안 팀을 참여시킬게요.',tip:'보안 문제는 공개 채널 대신 보안 팀에 먼저 비공개로 보고해요'},
+    {en:'Let\'s do a dry run of the deployment procedure in staging before we touch production.',es:'Hagamos un ensayo del procedimiento de despliegue en staging antes de tocar producción.',ko:'프로덕션을 건드리기 전에 스테이징에서 배포 절차를 리허설해봐요.',tip:'dry run = 실제 실행 전에 절차를 미리 연습해보는 것이에요'},
+    {en:'I\'ll own this investigation and provide a root cause analysis by tomorrow morning.',es:'Asumiré la responsabilidad de esta investigación y proporcionaré un análisis de causa raíz para mañana por la mañana.',ko:'이 조사를 담당하고 내일 아침까지 근본 원인 분석을 제공할게요.',tip:'root cause analysis = 문제의 근본적인 원인을 찾는 과정이에요'},
+    {en:'We\'re reaching the capacity limit on the current database. We should plan for a scaling solution next sprint.',es:'Estamos alcanzando el límite de capacidad de la base de datos actual. Deberíamos planificar una solución de escalado para el próximo sprint.',ko:'현재 데이터베이스의 용량 한계에 도달하고 있어요. 다음 스프린트에서 확장 솔루션을 계획해야 해요.',tip:'용량 문제는 한계에 도달하기 전에 미리 계획하는 것이 중요해요'},
+    {en:'The API contract has changed. Please update your client code before Monday\'s deployment.',es:'El contrato de API ha cambiado. Por favor, actualiza el código de tu cliente antes del despliegue del lunes.',ko:'API 계약이 변경됐어요. 월요일 배포 전에 클라이언트 코드를 업데이트해주세요.',tip:'API 변경 시 모든 소비자에게 충분한 시간을 두고 공지해요'},
+    {en:'I\'ll set up feature flags so we can enable this gradually without a full deployment.',es:'Configuraré feature flags para que podamos habilitarlo gradualmente sin un despliegue completo.',ko:'전체 배포 없이 점진적으로 활성화할 수 있도록 기능 플래그를 설정할게요.',tip:'feature flag = 코드 배포와 기능 활성화를 분리하는 기법이에요'},
+    {en:'The user research team has new findings that might change our approach to this feature. Can we schedule a review?',es:'El equipo de investigación de usuarios tiene nuevos hallazgos que podrían cambiar nuestro enfoque para esta función. ¿Podemos programar una revisión?',ko:'사용자 리서치 팀에 이 기능에 대한 접근 방식을 바꿀 수 있는 새로운 발견이 있어요. 리뷰를 예약할 수 있나요?',tip:'사용자 리서치 결과는 기술적 결정에 영향을 줄 수 있어요'},
+    {en:'We should invest in improving our local development setup. The current onboarding takes too long for new team members.',es:'Deberíamos invertir en mejorar nuestro entorno de desarrollo local. La incorporación actual lleva demasiado tiempo para los nuevos miembros del equipo.',ko:'로컬 개발 환경 개선에 투자해야 해요. 현재 온보딩이 새 팀원에게 너무 오래 걸려요.',tip:'좋은 개발 환경 = 팀 생산성과 새 멤버 온보딩 속도에 직결돼요'},
+    {en:'I\'ll prepare the release notes and coordinate with the marketing team on the announcement.',es:'Prepararé las notas de versión y coordinaré con el equipo de marketing sobre el anuncio.',ko:'릴리즈 노트를 준비하고 발표에 대해 마케팅 팀과 조율할게요.',tip:'릴리즈 노트는 사용자와 팀 모두를 위한 중요한 커뮤니케이션이에요'},
+    {en:'The incident is under control. We\'ll do a full post-mortem next week with all stakeholders.',es:'El incidente está bajo control. Haremos un post-mortem completo la próxima semana con todos los interesados.',ko:'인시던트는 통제 중이에요. 다음 주에 모든 이해관계자와 함께 전체 포스트모텀을 진행할게요.',tip:'인시던트 해결 후 post-mortem은 재발 방지를 위해 필수예요'},
+    {en:'Let\'s establish a clear Definition of Done for this project so everyone knows when a task is truly complete.',es:'Establezcamos una definición clara de Terminado para este proyecto para que todos sepan cuándo una tarea está verdaderamente completa.',ko:'모든 사람이 작업이 진정으로 완료됐을 때를 알 수 있도록 이 프로젝트의 명확한 완료 정의를 수립해요.',tip:'Definition of Done = 작업이 완료됐다고 볼 수 있는 기준이에요'},
+    {en:'I\'ll create a runbook for this deployment so anyone on the team can execute it safely.',es:'Crearé un runbook para este despliegue para que cualquier miembro del equipo pueda ejecutarlo de manera segura.',ko:'팀의 누구나 안전하게 실행할 수 있도록 이 배포를 위한 runbook을 만들게요.',tip:'runbook = 반복적인 작업을 누구나 실행할 수 있도록 단계별로 문서화한 것이에요'},
+    {en:'We need a decision on this within 48 hours or it will delay the entire project timeline.',es:'Necesitamos una decisión sobre esto dentro de 48 horas o retrasará todo el cronograma del proyecto.',ko:'이것에 대한 결정이 48시간 내에 필요하지 않으면 전체 프로젝트 일정이 지연될 거예요.',tip:'의사결정 기한과 결과를 함께 명시해요'},
+    {en:'I\'ll draft a technical design document for this feature and share it for async review before our next meeting.',es:'Redactaré un documento de diseño técnico para esta función y lo compartiré para revisión asíncrona antes de nuestra próxima reunión.',ko:'이 기능을 위한 기술 설계 문서를 작성하고 다음 미팅 전에 비동기 리뷰를 위해 공유할게요.',tip:'async review = 동기 미팅 없이 각자 시간에 맞춰 검토하는 방식이에요'},
+    {en:'This is the third time this service has gone down this month. We need to prioritize a long-term reliability fix.',es:'Esta es la tercera vez que este servicio se cae este mes. Necesitamos priorizar una corrección de confiabilidad a largo plazo.',ko:'이번 달 이 서비스가 세 번째로 다운됐어요. 장기적인 신뢰성 수정을 우선시해야 해요.',tip:'반복되는 장애는 근본적인 원인을 찾아 해결해야 해요'},
+    {en:'Could you walk me through the failing scenario step by step? I want to reproduce it on my end.',es:'¿Podrías explicarme el escenario fallido paso a paso? Quiero reproducirlo de mi lado.',ko:'실패하는 시나리오를 단계별로 설명해줄 수 있나요? 제 쪽에서 재현해보고 싶어요.',tip:'walk me through = 순서대로 설명해달라는 표현이에요'},
+    {en:'I\'ll be pairing with the new team member this week to help them get up to speed on the codebase.',es:'Estaré trabajando en pareja con el nuevo miembro del equipo esta semana para ayudarle a ponerse al día con el código base.',ko:'코드베이스에 빠르게 적응할 수 있도록 이번 주에 새 팀원과 페어링할게요.',tip:'pair programming = 두 명이 함께 코드를 작성하는 협업 방식이에요'},
+    {en:'The feature is complete but we\'re holding the release until the A/B test results are statistically significant.',es:'La función está completa pero estamos retrasando el lanzamiento hasta que los resultados de la prueba A/B sean estadísticamente significativos.',ko:'기능은 완료됐지만 A/B 테스트 결과가 통계적으로 유의미할 때까지 릴리즈를 보류하고 있어요.',tip:'A/B 테스트 = 두 버전을 비교해서 더 나은 것을 선택하는 방법이에요'},
+    {en:'I need to escalate this resource constraint issue to management. We can\'t deliver the roadmap without additional headcount.',es:'Necesito escalar este problema de restricción de recursos a la gerencia. No podemos entregar la hoja de ruta sin personal adicional.',ko:'이 리소스 제약 문제를 경영진에게 에스컬레이션해야 해요. 추가 인원 없이는 로드맵을 완료할 수 없어요.',tip:'headcount = 팀원 수. 리소스 부족은 조기에 경영진에게 알려야 해요'},
+    {en:'Let\'s agree on a code review SLA — I\'ll propose that all PRs receive at least one review within 24 business hours.',es:'Acordemos un SLA de revisión de código — propongo que todos los PRs reciban al menos una revisión dentro de las 24 horas hábiles.',ko:'코드 리뷰 SLA에 동의해요 — 모든 PR이 24 영업 시간 내에 최소 한 번의 리뷰를 받도록 제안해요.',tip:'SLA = Service Level Agreement. 서비스 수준 합의로 팀의 기대치를 명확히 해요'}
+  ],
+  [ // 5: 터미널
+    {en:'Permission denied',es:'Permiso denegado',ko:'권한이 거부됐어요',tip:'sudo 쓰거나 chmod로 권한 변경해요'},
+    {en:'Command not found',es:'Comando no encontrado',ko:'명령어를 찾을 수 없어요',tip:'PATH 설정이 안 됐거나 설치가 안 된 거예요'},
+    {en:'No such file or directory',es:'No existe tal archivo o directorio',ko:'해당 파일이나 디렉토리가 없어요',tip:'경로 오타 확인! pwd로 현재 위치 먼저 확인해요'},
+    {en:'Connection refused',es:'Conexión rechazada',ko:'연결이 거부됐어요',tip:'서버가 안 켜져 있거나 포트가 다른 거예요'},
+    {en:'Port 3000 is already in use',es:'El puerto 3000 ya está en uso',ko:'포트 3000이 이미 사용 중이에요',tip:'lsof -i :3000 으로 확인하고 kill 하면 돼요'},
+    {en:'fatal: not a git repository',es:'fatal: no es un repositorio git',ko:'치명적: git 저장소가 아니에요',tip:'git init 을 먼저 해야 해요'},
+    {en:'Your branch is behind \'origin/main\' by 3 commits.',es:'Tu rama está 3 commits por detrás de \'origin/main\'.',ko:'브랜치가 \'origin/main\'보다 3 커밋 뒤처져 있어요.',tip:'git pull 해서 최신 코드 받아와요'},
+    {en:'Killed: out of memory',es:'Terminado: sin memoria',ko:'종료됨: 메모리 부족',tip:'메모리가 부족해서 프로세스가 강제 종료된 거예요'},
+    {en:'Successfully built in 2.34s',es:'Compilado exitosamente en 2.34s',ko:'2.34초 만에 성공적으로 빌드됐어요',tip:'빌드 성공! 가장 보기 좋은 메시지예요 😊'},
+    {en:'Listening on port 8080',es:'Escuchando en el puerto 8080',ko:'포트 8080에서 수신 대기 중이에요',tip:'서버가 정상적으로 시작됐다는 신호예요'},
+    {en:'Watching for file changes...',es:'Observando cambios en archivos...',ko:'파일 변경 사항을 감시 중이에요...',tip:'개발 서버의 hot reload가 작동 중이라는 뜻이에요'},
+    {en:'Nothing to commit, working tree clean',es:'Nada que confirmar, árbol de trabajo limpio',ko:'커밋할 내용 없음, 작업 트리 깨끗함',tip:'변경된 파일이 없다는 git status 메시지예요'},
+    {en:'Already up to date.',es:'Ya está actualizado.',ko:'이미 최신 상태예요.',tip:'git pull 했는데 새로 받을 게 없을 때 나와요'},
+    {en:'Detached HEAD state',es:'Estado de HEAD desconectado',ko:'분리된 HEAD 상태',tip:'특정 커밋을 직접 체크아웃했을 때 나와요. 브랜치로 돌아가요'},
+    {en:'Resolving dependencies...',es:'Resolviendo dependencias...',ko:'의존성 해결 중이에요...',tip:'패키지 설치 시 버전 충돌을 해결하는 중이에요'},
+    {en:'warning: LF will be replaced by CRLF',es:'advertencia: LF será reemplazado por CRLF',ko:'경고: LF가 CRLF로 교체될 거예요',tip:'Windows와 Mac/Linux의 줄바꿈 차이 때문에 나와요'},
+    {en:'Process exited with code 1',es:'El proceso salió con código 1',ko:'프로세스가 코드 1로 종료됐어요',tip:'exit code 0 = 성공, 그 외 = 실패예요'},
+    {en:'SSL certificate verify failed',es:'Verificación del certificado SSL fallida',ko:'SSL 인증서 확인 실패',tip:'인증서가 만료됐거나 자체 서명된 인증서일 때 나와요'},
+    {en:'Environment variable not set',es:'Variable de entorno no establecida',ko:'환경 변수가 설정되지 않았어요',tip:'.env 파일을 확인하거나 export 명령어로 설정해요'},
+    {en:'Cache cleared successfully.',es:'Caché eliminado exitosamente.',ko:'캐시가 성공적으로 지워졌어요.',tip:'npm cache clean --force 로 npm 캐시를 지울 수 있어요'},
+    {en:'Server running at http://localhost:3000',es:'Servidor corriendo en http://localhost:3000',ko:'서버가 http://localhost:3000 에서 실행 중이에요',tip:'개발 서버가 정상 시작됐다는 메시지예요'},
+    {en:'Done in 3.21s.',es:'Listo en 3.21s.',ko:'3.21초 만에 완료됐어요.',tip:'yarn의 작업 완료 메시지 패턴이에요'},
+    {en:'bash: syntax error near unexpected token',es:'bash: error de sintaxis cerca del token inesperado',ko:'bash: 예상치 못한 토큰 근처의 구문 오류',tip:'쉘 스크립트 문법 오류예요. 따옴표나 괄호 확인해요'},
+    {en:'Host key verification failed',es:'Verificación de clave del host fallida',ko:'호스트 키 확인 실패',tip:'known_hosts 파일에서 해당 서버 정보를 삭제하면 해결돼요'},
+    {en:'npm WARN deprecated',es:'npm WARN deprecated',ko:'npm 경고: deprecated',tip:'다른 패키지로 교체하는 걸 고려해요'},
+    {en:'Compiling TypeScript... done.',es:'Compilando TypeScript... hecho.',ko:'TypeScript 컴파일 중... 완료.',tip:'tsc 명령어로 타입스크립트를 자바스크립트로 변환해요'},
+    {en:'Waiting for changes to compile...',es:'Esperando cambios para compilar...',ko:'변경 사항 컴파일 대기 중이에요...',tip:'파일을 저장하면 자동으로 재컴파일돼요'},
+    {en:'Host key verification failed.',es:'Verificación de clave del host fallida.',ko:'호스트 키 확인에 실패했어요.',tip:'ssh 접속 시 나와요. ~/.ssh/known_hosts 파일 확인해요'},
+    {en:'fatal: remote origin already exists.',es:'fatal: el origen remoto ya existe.',ko:'치명적: remote origin이 이미 존재해요.',tip:'git remote set-url origin 으로 URL을 변경해요'},
+    {en:'Changes not staged for commit',es:'Cambios no preparados para confirmar',ko:'커밋을 위해 스테이지되지 않은 변경 사항이 있어요',tip:'git add 로 스테이징 후 커밋해야 해요'},
+    {en:'error: failed to push some refs to \'origin\' — merge or rebase first before pushing',es:'error: falló al enviar algunas referencias a \'origin\' — fusiona o haz rebase primero antes de enviar',ko:'오류: \'origin\'으로 일부 참조를 푸시하지 못했어요 — 푸시 전에 먼저 머지 또는 리베이스해요',tip:'git pull --rebase origin main 으로 최신 상태를 가져온 후 푸시해요'},
+    {en:'Your local branch is ahead of \'origin/main\' by 2 commits — push to update the remote',es:'Tu rama local está 2 commits por delante de \'origin/main\' — haz push para actualizar el remoto',ko:'로컬 브랜치가 \'origin/main\'보다 2 커밋 앞서있어요 — 원격을 업데이트하려면 push해요',tip:'git push origin main 으로 로컬 커밋을 원격에 업로드해요'},
+    {en:'warning: in the working copy of \'package-lock.json\', LF will be replaced by CRLF',es:'advertencia: en la copia de trabajo de \'package-lock.json\', LF será reemplazado por CRLF',ko:'경고: \'package-lock.json\' 작업 복사본에서 LF가 CRLF로 교체될 거예요',tip:'git config --global core.autocrlf false 로 자동 변환을 비활성화해요'},
+    {en:'npm warn deprecated — this package is no longer maintained, consider using an alternative',es:'npm warn deprecated — este paquete ya no se mantiene, considera usar una alternativa',ko:'npm 경고 deprecated — 이 패키지는 더 이상 유지 관리되지 않아요, 대안 사용을 고려해요',tip:'deprecated 패키지는 보안 취약점이 있을 수 있어요. 적극적으로 교체해요'},
+    {en:'gyp error: no Xcode or CLT version detected — install Xcode command line tools first',es:'gyp error: no se detectó ninguna versión de Xcode o CLT — instala primero las herramientas de línea de comandos de Xcode',ko:'gyp 오류: Xcode 또는 CLT 버전이 감지되지 않았어요 — 먼저 Xcode 명령줄 도구를 설치해요',tip:'xcode-select --install 명령어로 Xcode 명령줄 도구를 설치해요'},
+    {en:'Killed process — memory usage exceeded limit, consider increasing Docker container memory',es:'Proceso terminado — el uso de memoria superó el límite, considera aumentar la memoria del contenedor Docker',ko:'프로세스 종료됨 — 메모리 사용량이 한계를 초과했어요, Docker 컨테이너 메모리 늘리는 것을 고려해요',tip:'Docker 컨테이너 메모리 제한은 -m 플래그로 설정해요'},
+    {en:'npm ERR! missing script: test — add a test script to your package.json',es:'npm ERR! script faltante: test — agrega un script test a tu package.json',ko:'npm 오류! 누락된 스크립트: test — package.json에 test 스크립트를 추가해요',tip:'package.json scripts 섹션에 \'test\': \'jest\' 같은 명령어를 추가해요'},
+    {en:'Downloading node modules... this may take a few minutes',es:'Descargando módulos de node... esto puede tardar unos minutos',ko:'노드 모듈 다운로드 중이에요... 몇 분 정도 걸릴 수 있어요',tip:'느린 npm install은 npm ci 또는 yarn install --frozen-lockfile 로 더 빠르게 할 수 있어요'},
+    {en:'git: \'checkout\' is not a git command. Did you mean \'switch\'?',es:'git: \'checkout\' no es un comando git. ¿Quisiste decir \'switch\'?',ko:'git: \'checkout\'은 git 명령어가 아니에요. \'switch\'를 의미했나요?',tip:'최신 git에서는 git switch가 git checkout의 역할을 대신해요'},
+    {en:'Build succeeded but with 3 warnings — review the warnings to prevent future issues',es:'La compilación tuvo éxito pero con 3 advertencias — revisa las advertencias para prevenir problemas futuros',ko:'빌드는 성공했지만 3개의 경고가 있어요 — 미래의 문제를 방지하기 위해 경고를 검토해요',tip:'경고는 지금 문제가 아니어도 나중에 오류가 될 수 있어요. 무시하지 마세요'},
+    {en:'Remote: Repository not found — check if the repository exists and you have access',es:'Remoto: Repositorio no encontrado — verifica si el repositorio existe y tienes acceso',ko:'원격: 저장소를 찾을 수 없어요 — 저장소가 존재하고 접근 권한이 있는지 확인해요',tip:'GitHub 저장소 URL이 올바른지, SSH 키 또는 토큰이 설정됐는지 확인해요'},
+    {en:'Merge made by the \'recursive\' strategy — auto-merge successful, check the result',es:'Fusión realizada con la estrategia \'recursive\' — auto-fusión exitosa, verifica el resultado',ko:'\'recursive\' 전략으로 머지됐어요 — 자동 머지 성공, 결과를 확인해요',tip:'자동 머지가 성공해도 논리적 충돌이 있을 수 있어요. 변경 사항을 검토해요'},
+    {en:'Switched to a new branch \'feature/user-auth\' — start working on your new feature',es:'Cambiado a una nueva rama \'feature/user-auth\' — comienza a trabajar en tu nueva función',ko:'새 브랜치 \'feature/user-auth\'로 전환했어요 — 새 기능 작업을 시작해요',tip:'git switch -c feature/user-auth 로 새 브랜치를 만들고 전환해요'},
+    {en:'Stash saved — your working directory changes are stored and can be restored later',es:'Guardado en stash — los cambios de tu directorio de trabajo están almacenados y pueden restaurarse más tarde',ko:'스태시에 저장됐어요 — 작업 디렉토리 변경 사항이 저장됐고 나중에 복원할 수 있어요',tip:'git stash pop 으로 저장된 변경 사항을 복원해요'},
+    {en:'package-lock.json changed — run npm install to sync your node_modules',es:'package-lock.json cambió — ejecuta npm install para sincronizar tus node_modules',ko:'package-lock.json이 변경됐어요 — node_modules를 동기화하려면 npm install을 실행해요',tip:'package-lock.json이 변경되면 node_modules를 새로 설치해야 해요'},
+    {en:'Rebase in progress — resolve conflicts then run git rebase --continue',es:'Rebase en progreso — resuelve los conflictos y luego ejecuta git rebase --continue',ko:'리베이스 진행 중 — 충돌을 해결한 후 git rebase --continue를 실행해요',tip:'충돌 해결 후 git add . 그리고 git rebase --continue 를 실행해요'},
+    {en:'Container started successfully — access the application at http://localhost:8080',es:'Contenedor iniciado exitosamente — accede a la aplicación en http://localhost:8080',ko:'컨테이너가 성공적으로 시작됐어요 — http://localhost:8080 에서 애플리케이션에 접근해요',tip:'docker ps 로 실행 중인 컨테이너 목록을 확인해요'},
+    {en:'Detached HEAD state — you are not on any branch, changes won\'t be tracked',es:'Estado de HEAD desconectado — no estás en ninguna rama, los cambios no serán rastreados',ko:'분리된 HEAD 상태 — 어떤 브랜치에도 있지 않아요, 변경 사항이 추적되지 않을 거예요',tip:'git switch main 또는 git switch -c new-branch 로 브랜치로 돌아가요'},
+    {en:'Compiling... watch mode enabled, press Ctrl+C to stop',es:'Compilando... modo watch habilitado, presiona Ctrl+C para detener',ko:'컴파일 중이에요... 감시 모드가 활성화됐어요, 중지하려면 Ctrl+C를 누르세요',tip:'watch 모드에서는 파일을 저장하면 자동으로 재컴파일해요'},
+    {en:'ssh: connect to host github.com port 22: Connection timed out — check your SSH config',es:'ssh: conectar al host github.com puerto 22: Tiempo de espera de conexión agotado — verifica tu configuración SSH',ko:'ssh: github.com 호스트 포트 22에 연결: 연결 타임아웃 — SSH 설정을 확인해요',tip:'포트 443으로 SSH를 사용하도록 ~/.ssh/config 에 설정을 추가해요'}
+  ],
+  [ // 6: 코드 리뷰
+    {en:'LGTM! Just a minor nit below.',es:'¡Se ve bien! Solo un pequeño comentario abajo.',ko:'좋아 보여요! 아래에 사소한 의견만 있어요.',tip:'nit = nitpick. 사소한 지적이라는 뜻이에요'},
+    {en:'Could you add a comment explaining why this is needed?',es:'¿Podrías añadir un comentario explicando por qué es necesario?',ko:'왜 이게 필요한지 설명하는 주석을 추가해줄 수 있어요?',tip:'Could you ~? 는 정중한 요청 표현이에요'},
+    {en:'This might cause a performance issue at scale.',es:'Esto podría causar un problema de rendimiento a escala.',ko:'이것은 규모가 커지면 성능 문제를 일으킬 수 있어요.',tip:'at scale = 사용자/데이터가 많아졌을 때라는 뜻이에요'},
+    {en:'Let\'s move this logic to a separate function.',es:'Movamos esta lógica a una función separada.',ko:'이 로직을 별도 함수로 분리해요.',tip:'Let\'s ~? 로 시작하면 부드러운 제안 표현이에요'},
+    {en:'This is a blocking issue for me.',es:'Este es un problema que me bloquea.',ko:'이것은 저에게 blocking 이슈예요.',tip:'blocking = 이게 해결 안 되면 다음 작업을 못한다는 뜻이에요'},
+    {en:'Nit: variable names should be camelCase.',es:'Nit: los nombres de variables deben ser camelCase.',ko:'사소한 의견: 변수명은 camelCase를 써야 해요.',tip:'Nit: 로 시작하면 선택사항인 작은 의견이에요'},
+    {en:'Can you add unit tests for this function?',es:'¿Puedes añadir pruebas unitarias para esta función?',ko:'이 함수에 단위 테스트를 추가해줄 수 있어요?',tip:'unit tests = 함수 단위로 기능을 검증하는 테스트예요'},
+    {en:'Approved with suggestions. Feel free to merge when ready.',es:'Aprobado con sugerencias. Fusiona cuando estés listo.',ko:'제안 사항과 함께 승인해요. 준비되면 머지해요.',tip:'최종 승인 시 쓰는 표현이에요 🎉'},
+    {en:'This should be memoized to avoid unnecessary re-renders.',es:'Esto debería estar memoizado para evitar re-renderizados innecesarios.',ko:'불필요한 리렌더링을 피하려면 메모이제이션해야 해요.',tip:'React에서 useMemo/useCallback 쓰라는 제안이에요'},
+    {en:'Looks good overall! Just a few questions inline.',es:'¡Se ve bien en general! Solo algunas preguntas en línea.',ko:'전반적으로 좋아 보여요! 인라인에 질문 몇 개만 있어요.',tip:'inline = 코드의 특정 줄에 달린 코멘트라는 뜻이에요'},
+    {en:'Can we extract this into a custom hook?',es:'¿Podemos extraer esto en un hook personalizado?',ko:'이것을 커스텀 훅으로 추출할 수 있어요?',tip:'React 로직을 재사용 가능하게 분리하는 제안이에요'},
+    {en:'This hardcoded value should be a constant.',es:'Este valor hardcodeado debería ser una constante.',ko:'이 하드코딩된 값은 상수가 되어야 해요.',tip:'magic number/string은 상수로 만들어야 유지보수가 쉬워요'},
+    {en:'Please squash your commits before merging.',es:'Por favor, aplasta tus commits antes de fusionar.',ko:'머지 전에 커밋을 스쿼시해주세요.',tip:'squash = 여러 커밋을 하나로 합치는 거예요'},
+    {en:'This could lead to a race condition.',es:'Esto podría llevar a una condición de carrera.',ko:'이것은 경쟁 조건으로 이어질 수 있어요.',tip:'race condition = 비동기 처리 순서가 보장 안 될 때 생기는 버그예요'},
+    {en:'Consider using early return to reduce nesting.',es:'Considera usar return anticipado para reducir el anidamiento.',ko:'중첩을 줄이기 위해 early return 사용을 고려해요.',tip:'early return = 조건 충족 시 일찍 반환하는 패턴이에요'},
+    {en:'This function is doing too many things.',es:'Esta función está haciendo demasiadas cosas.',ko:'이 함수가 너무 많은 일을 하고 있어요.',tip:'단일 책임 원칙(SRP)을 지키라는 의미예요'},
+    {en:'We should handle the edge case where the array is empty.',es:'Debemos manejar el caso extremo donde el array está vacío.',ko:'배열이 비어있는 엣지 케이스를 처리해야 해요.',tip:'edge case = 일반적이지 않은 특수한 입력 상황이에요'},
+    {en:'This logic is duplicated in three places.',es:'Esta lógica está duplicada en tres lugares.',ko:'이 로직이 세 곳에 중복되어 있어요.',tip:'DRY 원칙: Don\'t Repeat Yourself. 중복 제거가 중요해요'},
+    {en:'Great catch! I missed this completely.',es:'¡Buen hallazgo! Me lo perdí por completo.',ko:'잘 잡았어요! 완전히 놓쳤네요.',tip:'리뷰어의 좋은 발견을 칭찬하는 표현이에요'},
+    {en:'I\'d suggest using a Map instead of an object here.',es:'Sugeriría usar un Map en lugar de un objeto aquí.',ko:'여기서는 객체 대신 Map 사용을 제안해요.',tip:'I\'d suggest = 강요하지 않는 부드러운 제안 표현이에요'},
+    {en:'This PR is getting large. Should we split it?',es:'Este PR se está haciendo grande. ¿Deberíamos dividirlo?',ko:'이 PR이 너무 커지고 있어요. 분리할까요?',tip:'PR은 작을수록 리뷰하기 쉬워요'},
+    {en:'Approved! Nice work on this feature.',es:'¡Aprobado! Buen trabajo en esta función.',ko:'승인해요! 이 기능 잘 작업했어요.',tip:'최종 승인과 함께 칭찬하는 표현이에요 🎉'},
+    {en:'Can you update the tests to cover this change?',es:'¿Puedes actualizar las pruebas para cubrir este cambio?',ko:'이 변경사항을 커버하도록 테스트를 업데이트할 수 있어요?',tip:'코드 변경 시 테스트도 함께 업데이트해야 해요'},
+    {en:'Left a few suggestions but nothing blocking.',es:'Dejé algunas sugerencias pero nada que bloquee.',ko:'몇 가지 제안을 남겼지만 blocking은 없어요.',tip:'blocking과 non-blocking 피드백을 구분하면 좋아요'},
+    {en:'Is this intentional or a typo?',es:'¿Es esto intencional o un error tipográfico?',ko:'이게 의도적인 건가요, 아니면 오타인가요?',tip:'코드의 의도가 불명확할 때 질문하는 표현이에요'},
+    {en:'Consider adding JSDoc comments here.',es:'Considera agregar comentarios JSDoc aquí.',ko:'여기에 JSDoc 주석 추가를 고려해요.',tip:'JSDoc = 함수 설명을 표준 형식으로 작성하는 방법이에요'},
+    {en:'This would be cleaner with optional chaining.',es:'Esto sería más limpio con encadenamiento opcional.',ko:'옵셔널 체이닝을 사용하면 더 깔끔해요.',tip:'optional chaining = ?. 연산자로 안전하게 접근하는 거예요'},
+    {en:'This needs a TODO comment with a ticket number.',es:'Esto necesita un comentario TODO con número de ticket.',ko:'티켓 번호가 포함된 TODO 주석이 필요해요.',tip:'TODO 주석에는 추적 가능한 번호를 붙이는 게 좋아요'},
+    {en:'The error handling here seems incomplete.',es:'El manejo de errores aquí parece incompleto.',ko:'여기 에러 처리가 불완전한 것 같아요.',tip:'에러 처리는 빠짐없이 하는 게 중요해요'},
+    {en:'This is a good improvement over the previous implementation.',es:'Esta es una buena mejora sobre la implementación anterior.',ko:'이전 구현보다 좋은 개선이에요.',tip:'긍정적인 피드백은 동기 부여에 큰 도움이 돼요 😊'},
+    {en:'This function has too many parameters — consider using an options object to improve readability and extensibility.',es:'Esta función tiene demasiados parámetros — considera usar un objeto de opciones para mejorar la legibilidad y extensibilidad.',ko:'이 함수에 파라미터가 너무 많아요 — 가독성과 확장성을 향상시키기 위해 옵션 객체 사용을 고려해요.',tip:'파라미터가 3개 이상이면 객체로 묶는 것이 좋아요'},
+    {en:'The business logic and the data access code are mixed together. Let\'s separate them into different layers.',es:'La lógica de negocio y el código de acceso a datos están mezclados. Separémoslos en capas diferentes.',ko:'비즈니스 로직과 데이터 접근 코드가 섞여있어요. 서로 다른 레이어로 분리해요.',tip:'관심사 분리(Separation of Concerns)는 유지보수성을 높이는 핵심 원칙이에요'},
+    {en:'Excellent refactoring! The new version is much cleaner and easier to test than the original.',es:'¡Excelente refactorización! La nueva versión es mucho más limpia y fácil de probar que la original.',ko:'훌륭한 리팩토링이에요! 새 버전이 원본보다 훨씬 깔끔하고 테스트하기 쉬워요.',tip:'리팩토링의 목표는 동작은 유지하면서 코드 품질을 높이는 거예요'},
+    {en:'There\'s a potential race condition if two requests modify the same resource simultaneously — add proper locking.',es:'Hay una posible condición de carrera si dos solicitudes modifican el mismo recurso simultáneamente — agrega bloqueo adecuado.',ko:'두 요청이 동시에 동일한 리소스를 수정하면 경쟁 조건이 발생할 수 있어요 — 적절한 잠금을 추가해요.',tip:'race condition은 동시성이 있는 시스템에서 흔한 버그예요'},
+    {en:'The test name doesn\'t clearly describe what\'s being tested. Can you rename it to follow the \'should do X when Y\' pattern?',es:'El nombre del test no describe claramente lo que se está probando. ¿Puedes renombrarlo para seguir el patrón \'debe hacer X cuando Y\'?',ko:'테스트 이름이 무엇을 테스트하는지 명확하게 설명하지 않아요. \'X 할 때 Y 해야 한다\' 패턴을 따르도록 이름을 변경해줄 수 있나요?',tip:'좋은 테스트 이름은 테스트가 실패했을 때 무엇이 잘못됐는지 즉시 알려줘요'},
+    {en:'Using a forEach here instead of map loses the return value. Use map since you\'re creating a new array.',es:'Usar forEach aquí en lugar de map pierde el valor de retorno. Usa map ya que estás creando un nuevo array.',ko:'여기서 map 대신 forEach를 사용하면 반환값이 손실돼요. 새 배열을 생성하므로 map을 사용해요.',tip:'forEach = 부작용, map = 새 배열 생성. 목적에 맞는 메서드를 선택해요'},
+    {en:'The magic number 86400 should be a named constant — something like SECONDS_PER_DAY would be much clearer.',es:'El número mágico 86400 debería ser una constante con nombre — algo como SECONDS_PER_DAY sería mucho más claro.',ko:'매직 넘버 86400은 이름 있는 상수가 되어야 해요 — SECONDS_PER_DAY 같은 것이 훨씬 명확할 거예요.',tip:'매직 넘버 = 의미를 모르는 숫자. 항상 상수로 명시해요'},
+    {en:'This API call is happening outside useEffect which will cause it to fire on every render. Move it inside.',es:'Esta llamada a la API está ocurriendo fuera de useEffect lo que hará que se dispare en cada renderizado. Muévela dentro.',ko:'이 API 호출이 useEffect 밖에서 발생하고 있어서 매 렌더링마다 실행돼요. 안으로 이동해요.',tip:'데이터 패칭은 항상 useEffect 또는 이벤트 핸들러 안에서 해야 해요'},
+    {en:'Nice use of early return here — it keeps the happy path clean and avoids deep nesting.',es:'Buen uso del return anticipado aquí — mantiene limpio el camino feliz y evita el anidamiento profundo.',ko:'여기서 early return을 잘 사용했어요 — 정상 경로를 깔끔하게 유지하고 깊은 중첩을 피해요.',tip:'early return으로 예외를 먼저 처리하면 주요 로직이 명확해져요'},
+    {en:'The error message is not descriptive enough. Include what value was received and what was expected.',es:'El mensaje de error no es suficientemente descriptivo. Incluye qué valor se recibió y qué se esperaba.',ko:'오류 메시지가 충분히 설명적이지 않아요. 받은 값과 예상했던 값을 포함해요.',tip:'좋은 오류 메시지는 문제를 진단하는 데 걸리는 시간을 크게 줄여줘요'},
+    {en:'This switch statement will grow forever as new types are added. Consider using a strategy pattern or a map instead.',es:'Esta instrucción switch crecerá indefinidamente a medida que se agreguen nuevos tipos. Considera usar un patrón de estrategia o un mapa en su lugar.',ko:'새 타입이 추가될수록 이 switch 문은 계속 커질 거예요. 대신 전략 패턴이나 맵 사용을 고려해요.',tip:'개방-폐쇄 원칙(OCP) = 확장에 열려있고 수정에 닫혀있어야 해요'},
+    {en:'The comment explains what the code does, not why. The \'why\' is much more valuable for future maintainers.',es:'El comentario explica qué hace el código, no por qué. El \'por qué\' es mucho más valioso para los futuros mantenedores.',ko:'주석이 코드가 무엇을 하는지 설명하고 있어요, 왜 하는지가 아니라요. \'왜\'가 미래 유지보수자에게 훨씬 더 가치 있어요.',tip:'좋은 주석 = 코드의 의도와 이유를 설명. 코드를 그대로 읽어주는 주석은 불필요해요'},
+    {en:'This is an excellent approach for handling the pagination — clear, testable, and follows the existing patterns.',es:'Este es un excelente enfoque para manejar la paginación — claro, comprobable y sigue los patrones existentes.',ko:'페이지네이션 처리에 대한 훌륭한 접근 방식이에요 — 명확하고 테스트 가능하며 기존 패턴을 따라요.',tip:'기존 패턴을 따르면 코드 일관성이 높아지고 팀이 이해하기 쉬워요'},
+    {en:'The async operation is not awaited — this could cause unhandled promise rejections.',es:'La operación asíncrona no está siendo esperada — esto podría causar rechazos de promesas no manejados.',ko:'비동기 작업에 await가 없어요 — 처리되지 않은 promise 거부가 발생할 수 있어요.',tip:'async 함수 호출에는 항상 await를 붙이거나 .catch()로 에러를 처리해요'},
+    {en:'Good catch on that edge case! This would have been a subtle bug in production.',es:'¡Buen hallazgo en ese caso extremo! Habría sido un error sutil en producción.',ko:'그 엣지 케이스를 잘 잡았어요! 프로덕션에서 미묘한 버그가 됐을 거예요.',tip:'엣지 케이스를 코드 리뷰에서 발견하는 것이 QA보다 훨씬 저렴해요'},
+    {en:'The naming here is a bit misleading — getUserData sounds like it fetches user info but it actually filters it.',es:'El nombre aquí es un poco engañoso — getUserData suena como si obtuviera información del usuario pero en realidad la filtra.',ko:'여기 이름이 약간 오해를 일으켜요 — getUserData는 사용자 정보를 가져오는 것 같지만 실제로는 필터링해요.',tip:'함수 이름은 실제 동작을 정확하게 설명해야 해요'},
+    {en:'Let\'s extract this duplicated validation logic into a shared utility function used by both components.',es:'Extraigamos esta lógica de validación duplicada en una función de utilidad compartida utilizada por ambos componentes.',ko:'두 컴포넌트 모두에서 사용되는 공유 유틸리티 함수로 이 중복 유효성 검사 로직을 추출해요.',tip:'중복 코드는 버그도 중복으로 만들어요. DRY 원칙을 지켜요'},
+    {en:'The test coverage for the error path is missing. What happens when the API call fails?',es:'Falta la cobertura de pruebas para el camino de error. ¿Qué sucede cuando falla la llamada a la API?',ko:'오류 경로에 대한 테스트 커버리지가 없어요. API 호출이 실패하면 어떻게 되나요?',tip:'성공 경로뿐 아니라 실패 경로도 항상 테스트해야 해요'},
+    {en:'This is a good first step, but we\'ll need to revisit the performance of this approach when we scale to millions of records.',es:'Este es un buen primer paso, pero necesitaremos revisar el rendimiento de este enfoque cuando escalemos a millones de registros.',ko:'좋은 첫 단계이지만 수백만 개의 레코드로 확장할 때 이 접근 방식의 성능을 재검토해야 해요.',tip:'현재는 괜찮지만 미래 확장성을 미리 고려하는 것이 좋아요'},
+    {en:'Minor: the file is getting quite long. Consider splitting it into smaller, more focused modules.',es:'Menor: el archivo se está volviendo bastante largo. Considera dividirlo en módulos más pequeños y enfocados.',ko:'사소한 의견: 파일이 꽤 길어지고 있어요. 더 작고 집중된 모듈로 분리하는 것을 고려해요.',tip:'파일이 300줄을 넘으면 분리를 고려해보는 것이 좋아요'}
+  ],
+  [ // 7: React/Next.js
+    {en:'Component is mounted but not rendered.',es:'El componente está montado pero no renderizado.',ko:'컴포넌트가 마운트됐지만 렌더링되지 않았어요.',tip:'조건부 렌더링이나 display:none 확인해요'},
+    {en:'useEffect runs on every render.',es:'useEffect se ejecuta en cada renderizado.',ko:'useEffect가 매 렌더링마다 실행돼요.',tip:'의존성 배열 []을 추가하면 마운트 시에만 실행돼요'},
+    {en:'State update on an unmounted component.',es:'Actualización de estado en un componente desmontado.',ko:'언마운트된 컴포넌트에서 상태 업데이트가 발생했어요.',tip:'cleanup 함수에서 isMounted 플래그로 방지할 수 있어요'},
+    {en:'Props are read-only in React.',es:'Las props son de solo lectura en React.',ko:'React에서 props는 읽기 전용이에요.',tip:'props를 직접 수정하지 말고 state를 사용해요'},
+    {en:'This component re-renders unnecessarily.',es:'Este componente se re-renderiza innecesariamente.',ko:'이 컴포넌트가 불필요하게 리렌더링돼요.',tip:'React.memo 또는 useMemo/useCallback으로 최적화해요'},
+    {en:'Use server components to reduce client-side JavaScript.',es:'Usa componentes de servidor para reducir el JavaScript del cliente.',ko:'서버 컴포넌트를 사용해 클라이언트 사이드 JS를 줄여요.',tip:'Next.js 13+ App Router에서 기본이 서버 컴포넌트예요'},
+    {en:'getServerSideProps runs on every request.',es:'getServerSideProps se ejecuta en cada solicitud.',ko:'getServerSideProps는 매 요청마다 실행돼요.',tip:'정적 데이터라면 getStaticProps가 더 효율적이에요'},
+    {en:'This hook should only be called at the top level.',es:'Este hook solo debe llamarse en el nivel superior.',ko:'이 훅은 최상위 레벨에서만 호출해야 해요.',tip:'React 훅 규칙 1번: 반복문/조건문 안에서 쓰면 안 돼요'},
+    {en:'Wrap this in a Suspense boundary.',es:'Envuelve esto en un límite de Suspense.',ko:'이것을 Suspense 경계로 감싸요.',tip:'비동기 컴포넌트 로딩 중 fallback UI를 보여주는 거예요'},
+    {en:'Client component cannot use async/await directly.',es:'El componente cliente no puede usar async/await directamente.',ko:'클라이언트 컴포넌트는 async/await을 직접 사용할 수 없어요.',tip:'클라이언트에서는 useEffect나 SWR/React Query를 써요'},
+    {en:'Use dynamic import for code splitting.',es:'Usa importación dinámica para la división de código.',ko:'코드 분할을 위해 dynamic import를 사용해요.',tip:'next/dynamic으로 특정 컴포넌트를 지연 로드할 수 있어요'},
+    {en:'Image must have width and height props.',es:'La imagen debe tener props de ancho y alto.',ko:'이미지에는 width와 height props가 있어야 해요.',tip:'Next.js Image 컴포넌트에서 CLS를 방지하기 위해 필요해요'},
+    {en:'This route is statically generated at build time.',es:'Esta ruta se genera estáticamente en tiempo de compilación.',ko:'이 라우트는 빌드 시 정적으로 생성돼요.',tip:'ISR로 revalidate 시간을 설정하면 주기적으로 재생성해요'},
+    {en:'Add \'use client\' directive to use browser APIs.',es:'Agrega la directiva \'use client\' para usar APIs del navegador.',ko:'브라우저 API를 사용하려면 \'use client\' 지시어를 추가해요.',tip:'Next.js 13+ App Router에서 클라이언트 컴포넌트 표시 방법이에요'},
+    {en:'Context value changes will re-render all consumers.',es:'Los cambios en el valor del contexto volverán a renderizar todos los consumidores.',ko:'Context 값 변경은 모든 소비자를 리렌더링해요.',tip:'Context를 너무 자주 업데이트하면 성능 문제가 생겨요'},
+    {en:'Use the key prop to reset component state.',es:'Usa la prop key para resetear el estado del componente.',ko:'key prop을 사용해 컴포넌트 상태를 리셋해요.',tip:'key가 바뀌면 컴포넌트가 완전히 새로 마운트돼요'},
+    {en:'Avoid using array index as key.',es:'Evita usar el índice del array como key.',ko:'배열 인덱스를 key로 사용하지 마세요.',tip:'순서가 바뀌거나 삭제될 수 있는 리스트에서 버그가 생겨요'},
+    {en:'This API route should be secured with authentication.',es:'Esta ruta de API debe estar asegurada con autenticación.',ko:'이 API 라우트는 인증으로 보호해야 해요.',tip:'Next.js API 라우트도 외부에서 접근 가능하니 주의해요'},
+    {en:'Prefetch is enabled by default for Link components.',es:'El prefetch está habilitado por defecto para los componentes Link.',ko:'Link 컴포넌트는 기본적으로 prefetch가 활성화돼요.',tip:'prefetch={false}로 비활성화할 수 있어요'},
+    {en:'Server actions must be marked with \'use server\'.',es:'Las acciones del servidor deben marcarse con \'use server\'.',ko:'서버 액션은 \'use server\'로 표시해야 해요.',tip:'Next.js 13.4+ Server Actions로 폼 처리를 서버에서 해요'},
+    {en:'Middleware runs before the request is completed.',es:'El middleware se ejecuta antes de que se complete la solicitud.',ko:'미들웨어는 요청이 완료되기 전에 실행돼요.',tip:'인증, 리디렉션, 로깅 등에 활용해요'},
+    {en:'Environment variables must be prefixed with NEXT_PUBLIC_ to be accessible on the client.',es:'Las variables de entorno deben tener el prefijo NEXT_PUBLIC_ para ser accesibles en el cliente.',ko:'클라이언트에서 접근하려면 환경 변수에 NEXT_PUBLIC_ 접두사가 필요해요.',tip:'서버 전용 환경 변수는 NEXT_PUBLIC_ 없이 사용해요'},
+    {en:'Use router.push() for programmatic navigation.',es:'Usa router.push() para navegación programática.',ko:'프로그래밍 방식 탐색에는 router.push()를 사용해요.',tip:'useRouter 훅으로 router 객체를 가져와요'},
+    {en:'Revalidate the cache after mutation.',es:'Revalida el caché después de la mutación.',ko:'뮤테이션 후 캐시를 재검증해요.',tip:'revalidatePath() 또는 revalidateTag()를 사용해요'},
+    {en:'This component is too large. Consider splitting it.',es:'Este componente es demasiado grande. Considera dividirlo.',ko:'이 컴포넌트가 너무 커요. 분리를 고려해요.',tip:'컴포넌트는 단일 책임 원칙을 따르는 게 좋아요'},
+    {en:'Lazy load this component to improve initial page load.',es:'Carga perezosa este componente para mejorar la carga inicial.',ko:'초기 페이지 로드 개선을 위해 이 컴포넌트를 지연 로드해요.',tip:'next/dynamic으로 필요할 때만 로드할 수 있어요'},
+    {en:'Use generateStaticParams to pre-render dynamic routes.',es:'Usa generateStaticParams para pre-renderizar rutas dinámicas.',ko:'동적 라우트를 사전 렌더링하려면 generateStaticParams를 사용해요.',tip:'빌드 시 동적 경로를 미리 생성해 성능을 높여요'},
+    {en:'The hydration warning suggests a mismatch between server and client.',es:'La advertencia de hidratación sugiere una discrepancia entre el servidor y el cliente.',ko:'하이드레이션 경고는 서버와 클라이언트 간 불일치를 나타내요.',tip:'Date.now()나 Math.random() 같은 값을 서버에서 쓰면 생겨요'},
+    {en:'Wrap client-only code in useEffect to avoid SSR issues.',es:'Envuelve el código solo de cliente en useEffect para evitar problemas de SSR.',ko:'SSR 문제를 피하려면 클라이언트 전용 코드를 useEffect로 감싸요.',tip:'window, document 같은 브라우저 API는 서버에서 실행 안 돼요'},
+    {en:'Parallel routes allow rendering multiple pages simultaneously.',es:'Las rutas paralelas permiten renderizar múltiples páginas simultáneamente.',ko:'병렬 라우트는 여러 페이지를 동시에 렌더링할 수 있어요.',tip:'Next.js 13+ App Router의 @folder 문법을 써요'},
+    {en:'ISR allows updating static pages after deployment.',es:'ISR permite actualizar páginas estáticas después del despliegue.',ko:'ISR은 배포 후에도 정적 페이지를 업데이트할 수 있어요.',tip:'ISR = Incremental Static Regeneration. revalidate 옵션으로 설정해요'},
+    {en:'The server component is fetching data that changes frequently. Consider using revalidate with a short interval.',es:'El componente de servidor está obteniendo datos que cambian con frecuencia. Considera usar revalidate con un intervalo corto.',ko:'서버 컴포넌트가 자주 변경되는 데이터를 가져오고 있어요. 짧은 간격으로 revalidate 사용을 고려해요.',tip:'export const revalidate = 60 으로 60초마다 페이지를 재생성해요'},
+    {en:'Use startTransition to wrap non-urgent state updates so React can prioritize more important updates.',es:'Usa startTransition para envolver actualizaciones de estado no urgentes para que React pueda priorizar actualizaciones más importantes.',ko:'React가 더 중요한 업데이트를 우선할 수 있도록 긴급하지 않은 상태 업데이트를 startTransition으로 감싸요.',tip:'React 18의 Concurrent Mode에서 업데이트 우선순위를 제어하는 방법이에요'},
+    {en:'The loading.tsx file will automatically show while the page is loading in the App Router.',es:'El archivo loading.tsx se mostrará automáticamente mientras la página se carga en el App Router.',ko:'loading.tsx 파일은 App Router에서 페이지가 로딩되는 동안 자동으로 표시돼요.',tip:'Next.js 13+ App Router에서 loading.tsx는 Suspense 경계를 자동으로 생성해요'},
+    {en:'The error.tsx file must be a Client Component — add the \'use client\' directive at the top.',es:'El archivo error.tsx debe ser un Componente Cliente — agrega la directiva \'use client\' en la parte superior.',ko:'error.tsx 파일은 클라이언트 컴포넌트여야 해요 — 맨 위에 \'use client\' 지시어를 추가해요.',tip:'Next.js error boundary는 useState를 사용하기 때문에 클라이언트 컴포넌트여야 해요'},
+    {en:'useFormState and useFormStatus are new React 19 hooks for managing form state with Server Actions.',es:'useFormState y useFormStatus son nuevos hooks de React 19 para gestionar el estado del formulario con Server Actions.',ko:'useFormState와 useFormStatus는 서버 액션으로 폼 상태를 관리하는 React 19의 새 훅이에요.',tip:'Server Actions + useFormState 조합은 풀스택 폼 처리를 단순화해요'},
+    {en:'The intercepting route allows you to show a modal while keeping the current page in the background.',es:'La ruta de intercepción te permite mostrar un modal mientras mantienes la página actual en segundo plano.',ko:'인터셉팅 라우트는 현재 페이지를 배경에 유지하면서 모달을 표시할 수 있게 해요.',tip:'Next.js 13+의 (..) 폴더 문법으로 인터셉팅 라우트를 구현해요'},
+    {en:'Suspense boundaries help you show a loading state for just part of the UI without blocking the rest of the page.',es:'Los límites de Suspense te ayudan a mostrar un estado de carga solo para una parte de la interfaz sin bloquear el resto de la página.',ko:'Suspense 경계는 페이지의 나머지 부분을 차단하지 않고 UI의 일부만 로딩 상태를 표시할 수 있게 해요.',tip:'Suspense는 컴포넌트 트리의 일부를 비동기적으로 렌더링하는 메커니즘이에요'},
+    {en:'The route handler replaces the API routes from the pages directory. Use it to handle HTTP methods.',es:'El manejador de rutas reemplaza las rutas de API del directorio pages. Úsalo para manejar métodos HTTP.',ko:'라우트 핸들러는 pages 디렉토리의 API 라우트를 대체해요. HTTP 메서드를 처리하는 데 사용해요.',tip:'App Router에서 route.ts 파일이 API routes 역할을 해요'},
+    {en:'Avoid putting data fetching logic directly in components — use a data layer or custom hooks for better separation.',es:'Evita poner la lógica de obtención de datos directamente en los componentes — usa una capa de datos o hooks personalizados para mejor separación.',ko:'컴포넌트에 직접 데이터 패칭 로직을 넣지 말아요 — 더 나은 분리를 위해 데이터 레이어나 커스텀 훅을 사용해요.',tip:'데이터 패칭 로직을 분리하면 테스트와 재사용이 쉬워져요'},
+    {en:'React.memo only does a shallow comparison of props. For deep objects, you may still get unnecessary re-renders.',es:'React.memo solo hace una comparación superficial de props. Para objetos profundos, aún puedes obtener re-renderizados innecesarios.',ko:'React.memo는 props의 얕은 비교만 해요. 깊은 객체의 경우 여전히 불필요한 리렌더링이 발생할 수 있어요.',tip:'useMemo로 객체를 메모이즈하거나 커스텀 비교 함수를 React.memo에 전달해요'},
+    {en:'Using index.ts barrel files makes imports cleaner but can hurt tree-shaking in some bundlers.',es:'Usar archivos barrel index.ts hace las importaciones más limpias pero puede perjudicar el tree-shaking en algunos bundlers.',ko:'index.ts 배럴 파일을 사용하면 import가 깔끔해지지만 일부 번들러에서 tree-shaking에 영향을 줄 수 있어요.',tip:'배럴 파일 = 여러 모듈을 한 곳에서 re-export하는 파일이에요'},
+    {en:'The layout.tsx wraps all pages in the same route segment — a good place to add shared UI like headers and sidebars.',es:'El layout.tsx envuelve todas las páginas en el mismo segmento de ruta — un buen lugar para agregar UI compartida como encabezados y barras laterales.',ko:'layout.tsx는 동일한 라우트 세그먼트의 모든 페이지를 감싸요 — 헤더나 사이드바 같은 공유 UI를 추가하기 좋은 곳이에요.',tip:'중첩 레이아웃으로 페이지별로 다른 레이아웃을 사용할 수 있어요'},
+    {en:'next/font automatically optimizes fonts and removes external network requests for better performance and privacy.',es:'next/font optimiza automáticamente las fuentes y elimina las solicitudes de red externas para un mejor rendimiento y privacidad.',ko:'next/font은 자동으로 폰트를 최적화하고 더 나은 성능과 개인 정보를 위해 외부 네트워크 요청을 제거해요.',tip:'Google Fonts를 next/font/google 으로 가져오면 자동으로 최적화돼요'},
+    {en:'The use() hook in React 19 lets you read the value of a Promise or Context directly inside a component.',es:'El hook use() en React 19 te permite leer el valor de una Promise o Context directamente dentro de un componente.',ko:'React 19의 use() 훅은 컴포넌트 내부에서 직접 Promise 또는 Context의 값을 읽을 수 있게 해요.',tip:'use() = React 19의 새 훅으로 조건문 안에서도 사용할 수 있어요'},
+    {en:'Avoid storing derived state in useState — compute it directly from the existing state or props instead.',es:'Evita almacenar estado derivado en useState — compútalo directamente desde el estado o props existentes en su lugar.',ko:'useState에 파생 상태를 저장하지 말아요 — 대신 기존 상태나 props에서 직접 계산해요.',tip:'derived state = 다른 상태에서 계산할 수 있는 값이에요. 중복 상태는 버그를 만들어요'},
+    {en:'parallel data fetching in Server Components by declaring multiple async operations before awaiting them.',es:'Obtención de datos en paralelo en Componentes del Servidor declarando múltiples operaciones asíncronas antes de esperarlas.',ko:'서버 컴포넌트에서 여러 비동기 작업을 await 전에 선언해서 병렬 데이터 패칭을 해요.',tip:'Promise.all([fetchA(), fetchB()]) 로 병렬 패칭하면 순차 패칭보다 훨씬 빨라요'},
+    {en:'next/image handles lazy loading, WebP conversion, and responsive images automatically out of the box.',es:'next/image maneja la carga diferida, conversión WebP e imágenes responsivas automáticamente de forma predeterminada.',ko:'next/image는 지연 로딩, WebP 변환, 반응형 이미지를 자동으로 처리해요.',tip:'next/image를 사용하면 이미지 성능 최적화를 자동으로 해결할 수 있어요'},
+    {en:'The not-found.tsx file renders when a notFound() function is called or a route doesn\'t match.',es:'El archivo not-found.tsx se renderiza cuando se llama a la función notFound() o una ruta no coincide.',ko:'not-found.tsx 파일은 notFound() 함수가 호출되거나 라우트가 일치하지 않을 때 렌더링돼요.',tip:'notFound()를 호출하면 404 상태 코드와 함께 not-found.tsx가 표시돼요'},
+    {en:'Avoid wrapping everything in a single large Provider — split context by concern to prevent unnecessary re-renders.',es:'Evita envolver todo en un solo Provider grande — divide el contexto por preocupación para prevenir re-renderizados innecesarios.',ko:'모든 것을 하나의 큰 Provider로 감싸지 말아요 — 불필요한 리렌더링을 방지하기 위해 관심사별로 Context를 분리해요.',tip:'Context가 자주 변경되면 모든 소비자가 리렌더링돼요. 작은 단위로 분리해요'},
+    {en:'The middleware.ts file runs at the Edge, before the request reaches the server — ideal for auth checks and redirects.',es:'El archivo middleware.ts se ejecuta en el Edge, antes de que la solicitud llegue al servidor — ideal para comprobaciones de autenticación y redirecciones.',ko:'middleware.ts 파일은 Edge에서 실행돼요, 요청이 서버에 도달하기 전에 — 인증 체크와 리디렉션에 이상적이에요.',tip:'Edge = 사용자와 가까운 CDN 서버에서 실행돼서 매우 빠른 응답이 가능해요'}
+  ],
+  [ // 8: 백엔드/API
+    {en:'Return a 201 status code when a resource is created.',es:'Devuelve un código de estado 201 cuando se crea un recurso.',ko:'리소스가 생성될 때 201 상태 코드를 반환해요.',tip:'200 = OK, 201 = Created, 204 = No Content예요'},
+    {en:'Use pagination to limit the number of results.',es:'Usa paginación para limitar el número de resultados.',ko:'결과 수를 제한하기 위해 페이지네이션을 사용해요.',tip:'limit/offset 또는 cursor 기반 페이지네이션이 있어요'},
+    {en:'Validate the request body before processing.',es:'Valida el cuerpo de la solicitud antes de procesarla.',ko:'처리 전에 요청 본문을 검증해요.',tip:'Zod, Joi, express-validator 같은 라이브러리를 써요'},
+    {en:'This endpoint requires authentication.',es:'Este endpoint requiere autenticación.',ko:'이 엔드포인트는 인증이 필요해요.',tip:'JWT 토큰이나 세션으로 인증을 구현해요'},
+    {en:'Rate limiting is applied to prevent abuse.',es:'Se aplica limitación de velocidad para prevenir abusos.',ko:'남용을 방지하기 위해 속도 제한이 적용돼요.',tip:'express-rate-limit 같은 미들웨어로 구현해요'},
+    {en:'Use HTTPS to encrypt data in transit.',es:'Usa HTTPS para cifrar datos en tránsito.',ko:'전송 중인 데이터를 암호화하려면 HTTPS를 사용해요.',tip:'Let\'s Encrypt로 무료 SSL 인증서를 받을 수 있어요'},
+    {en:'The API follows RESTful conventions.',es:'La API sigue las convenciones RESTful.',ko:'이 API는 RESTful 규칙을 따라요.',tip:'GET/POST/PUT/DELETE/PATCH 메서드를 올바르게 사용해요'},
+    {en:'Implement idempotency for POST requests.',es:'Implementa idempotencia para las solicitudes POST.',ko:'POST 요청에 대한 멱등성을 구현해요.',tip:'idempotent = 같은 요청을 여러 번 해도 결과가 동일한 거예요'},
+    {en:'Cache frequently accessed data to improve performance.',es:'Almacena en caché los datos de acceso frecuente para mejorar el rendimiento.',ko:'성능 향상을 위해 자주 접근하는 데이터를 캐시해요.',tip:'Redis를 인메모리 캐시로 많이 사용해요'},
+    {en:'Use environment variables for sensitive configuration.',es:'Usa variables de entorno para la configuración sensible.',ko:'민감한 설정에는 환경 변수를 사용해요.',tip:'API 키, DB 비밀번호는 절대 코드에 하드코딩하면 안 돼요'},
+    {en:'The request payload is too large.',es:'El payload de la solicitud es demasiado grande.',ko:'요청 페이로드가 너무 커요.',tip:'413 Payload Too Large 에러예요. 파일 크기 제한을 설정해요'},
+    {en:'Implement graceful shutdown to handle in-flight requests.',es:'Implementa un apagado elegante para manejar solicitudes en vuelo.',ko:'처리 중인 요청을 처리하기 위해 Graceful Shutdown을 구현해요.',tip:'SIGTERM 신호를 받으면 진행 중인 요청을 완료 후 종료해요'},
+    {en:'Use connection pooling for database connections.',es:'Usa agrupación de conexiones para las conexiones de base de datos.',ko:'데이터베이스 연결에 커넥션 풀링을 사용해요.',tip:'연결을 매번 새로 만들지 않고 재사용해서 성능을 높여요'},
+    {en:'Log the request ID for easier debugging.',es:'Registra el ID de solicitud para facilitar la depuración.',ko:'더 쉬운 디버깅을 위해 요청 ID를 로깅해요.',tip:'각 요청에 고유 ID를 붙이면 로그 추적이 쉬워요'},
+    {en:'This endpoint is versioned as /api/v2/',es:'Este endpoint tiene la versión /api/v2/',ko:'이 엔드포인트는 /api/v2/로 버전이 지정됐어요.',tip:'API 버전 관리로 하위 호환성을 유지할 수 있어요'},
+    {en:'Use async/await with proper error handling in Express.',es:'Usa async/await con manejo de errores adecuado en Express.',ko:'Express에서 적절한 에러 처리와 함께 async/await을 사용해요.',tip:'Express는 async 에러를 자동으로 처리 안 해요. try-catch 필수!'},
+    {en:'The webhook payload should be verified with a secret.',es:'El payload del webhook debe verificarse con un secreto.',ko:'웹훅 페이로드는 시크릿으로 검증해야 해요.',tip:'HMAC 서명으로 웹훅이 올바른 소스에서 왔는지 확인해요'},
+    {en:'Implement retry logic for failed external API calls.',es:'Implementa lógica de reintento para llamadas a API externas fallidas.',ko:'실패한 외부 API 호출에 대한 재시도 로직을 구현해요.',tip:'지수 백오프(exponential backoff)로 재시도 간격을 늘려요'},
+    {en:'Use DTOs to validate and transform incoming data.',es:'Usa DTOs para validar y transformar los datos entrantes.',ko:'들어오는 데이터를 검증하고 변환하기 위해 DTO를 사용해요.',tip:'DTO = Data Transfer Object. NestJS에서 많이 사용해요'},
+    {en:'This service is stateless and can be horizontally scaled.',es:'Este servicio no tiene estado y puede escalarse horizontalmente.',ko:'이 서비스는 무상태이며 수평 확장이 가능해요.',tip:'stateless = 서버가 클라이언트 상태를 저장하지 않는다는 뜻이에요'},
+    {en:'Add a health check endpoint for monitoring.',es:'Agrega un endpoint de verificación de salud para monitoreo.',ko:'모니터링을 위한 헬스체크 엔드포인트를 추가해요.',tip:'/health 또는 /ping 엔드포인트로 서버 상태를 확인해요'},
+    {en:'Use middleware for cross-cutting concerns.',es:'Usa middleware para preocupaciones transversales.',ko:'공통 관심사에는 미들웨어를 사용해요.',tip:'인증, 로깅, 에러 처리 같은 공통 로직을 미들웨어로 분리해요'},
+    {en:'The response should include a Content-Type header.',es:'La respuesta debe incluir un encabezado Content-Type.',ko:'응답에는 Content-Type 헤더가 포함되어야 해요.',tip:'application/json, text/html 등 타입을 명시해요'},
+    {en:'Implement CSRF protection for form submissions.',es:'Implementa protección CSRF para el envío de formularios.',ko:'폼 제출에 대한 CSRF 보호를 구현해요.',tip:'CSRF = Cross-Site Request Forgery. 토큰 방식으로 방어해요'},
+    {en:'Use message queues for long-running tasks.',es:'Usa colas de mensajes para tareas de larga duración.',ko:'오래 실행되는 작업에는 메시지 큐를 사용해요.',tip:'Bull, RabbitMQ, AWS SQS 같은 큐를 사용해요'},
+    {en:'Never store passwords in plain text.',es:'Nunca almacenes contraseñas en texto plano.',ko:'비밀번호를 평문으로 저장하면 절대 안 돼요.',tip:'bcrypt나 argon2로 해싱해서 저장해요'},
+    {en:'The JWT token expires in 24 hours.',es:'El token JWT expira en 24 horas.',ko:'JWT 토큰은 24시간 후에 만료돼요.',tip:'짧은 만료 시간 + refresh token 방식이 안전해요'},
+    {en:'Use GZIP compression to reduce response size.',es:'Usa compresión GZIP para reducir el tamaño de la respuesta.',ko:'응답 크기를 줄이기 위해 GZIP 압축을 사용해요.',tip:'Express에서 compression 미들웨어로 쉽게 적용해요'},
+    {en:'Implement circuit breaker pattern for external services.',es:'Implementa el patrón de disyuntor para servicios externos.',ko:'외부 서비스에 대한 서킷 브레이커 패턴을 구현해요.',tip:'외부 서비스 장애 시 빠른 실패로 전체 시스템 보호해요'},
+    {en:'This API supports both JSON and XML responses.',es:'Esta API admite respuestas tanto en JSON como en XML.',ko:'이 API는 JSON과 XML 응답을 모두 지원해요.',tip:'Accept 헤더로 응답 형식을 요청할 수 있어요'},
+    {en:'Document your API using OpenAPI/Swagger.',es:'Documenta tu API usando OpenAPI/Swagger.',ko:'OpenAPI/Swagger를 사용해 API를 문서화해요.',tip:'Swagger UI로 API를 시각적으로 테스트할 수 있어요'},
+    {en:'Always sanitize user input before processing it — even from authenticated users who might be compromised.',es:'Siempre sanitiza la entrada del usuario antes de procesarla — incluso de usuarios autenticados que podrían estar comprometidos.',ko:'처리하기 전에 항상 사용자 입력을 sanitize해요 — 손상됐을 수 있는 인증된 사용자에게서 온 것도 마찬가지예요.',tip:'입력 sanitize = 악의적인 입력이 시스템에 영향을 주지 못하도록 정제하는 것이에요'},
+    {en:'Use structured logging with a consistent format so logs can be parsed and analyzed by monitoring tools.',es:'Usa el registro estructurado con un formato consistente para que los registros puedan ser analizados por herramientas de monitoreo.',ko:'모니터링 도구가 로그를 파싱하고 분석할 수 있도록 일관된 형식의 구조화된 로깅을 사용해요.',tip:'JSON 형식의 구조화된 로그는 ELK Stack이나 Datadog으로 분석하기 쉬워요'},
+    {en:'The API response should include the total count for paginated results so clients know how many pages there are.',es:'La respuesta de la API debe incluir el recuento total para los resultados paginados para que los clientes sepan cuántas páginas hay.',ko:'클라이언트가 페이지 수를 알 수 있도록 API 응답에 페이지네이션된 결과의 총 개수를 포함해야 해요.',tip:'페이지네이션 응답에는 data, total, page, limit 필드를 포함하는 것이 표준이에요'},
+    {en:'Implement an exponential backoff strategy for retrying failed database connections on startup.',es:'Implementa una estrategia de retroceso exponencial para reintentar las conexiones de base de datos fallidas al inicio.',ko:'시작 시 실패한 데이터베이스 연결을 재시도하기 위한 지수 백오프 전략을 구현해요.',tip:'지수 백오프 = 재시도 간격을 1초, 2초, 4초, 8초 등으로 늘리는 방식이에요'},
+    {en:'Use HTTPS everywhere — even for internal microservice communication — to prevent man-in-the-middle attacks.',es:'Usa HTTPS en todas partes — incluso para la comunicación interna de microservicios — para prevenir ataques de intermediario.',ko:'중간자 공격을 방지하기 위해 내부 마이크로서비스 통신을 포함해 모든 곳에 HTTPS를 사용해요.',tip:'내부 서비스 간 통신도 암호화하는 것이 zero-trust 보안 모델이에요'},
+    {en:'The 204 No Content status code is appropriate for successful DELETE operations where no response body is needed.',es:'El código de estado 204 Sin contenido es apropiado para operaciones DELETE exitosas donde no se necesita cuerpo de respuesta.',ko:'204 No Content 상태 코드는 응답 본문이 필요 없는 성공적인 DELETE 작업에 적합해요.',tip:'HTTP 상태 코드를 올바르게 사용하면 API 소비자가 결과를 쉽게 이해해요'},
+    {en:'Add request tracing so you can follow a single request through all microservices using a correlation ID.',es:'Agrega rastreo de solicitudes para que puedas seguir una sola solicitud a través de todos los microservicios usando un ID de correlación.',ko:'상관 관계 ID를 사용해서 모든 마이크로서비스에서 단일 요청을 추적할 수 있도록 요청 추적을 추가해요.',tip:'correlation ID = 요청에 부여한 고유 ID로 분산 시스템에서 로그를 추적해요'},
+    {en:'Validate the Content-Type header to ensure clients are sending data in the expected format.',es:'Valida el encabezado Content-Type para asegurarte de que los clientes estén enviando datos en el formato esperado.',ko:'클라이언트가 예상한 형식으로 데이터를 보내고 있는지 확인하기 위해 Content-Type 헤더를 검증해요.',tip:'잘못된 Content-Type은 데이터 파싱 오류의 원인이에요'},
+    {en:'Use database transactions for operations that modify multiple tables to ensure data consistency.',es:'Usa transacciones de base de datos para operaciones que modifican múltiples tablas para asegurar la consistencia de los datos.',ko:'데이터 일관성을 보장하기 위해 여러 테이블을 수정하는 작업에 데이터베이스 트랜잭션을 사용해요.',tip:'트랜잭션은 모두 성공하거나 모두 실패하는 원자성을 보장해요'},
+    {en:'The API gateway should handle cross-cutting concerns like authentication, rate limiting, and logging centrally.',es:'El gateway de API debe manejar preocupaciones transversales como autenticación, limitación de velocidad y registro de forma centralizada.',ko:'API 게이트웨이는 인증, 속도 제한, 로깅 같은 공통 관심사를 중앙에서 처리해야 해요.',tip:'API 게이트웨이 = 모든 API 요청의 단일 진입점이에요'},
+    {en:'Implement graceful degradation — when a non-critical service fails, return partial data rather than failing entirely.',es:'Implementa la degradación elegante — cuando falla un servicio no crítico, devuelve datos parciales en lugar de fallar completamente.',ko:'우아한 저하를 구현해요 — 중요하지 않은 서비스가 실패하면 완전히 실패하는 대신 부분적인 데이터를 반환해요.',tip:'graceful degradation = 일부 기능이 실패해도 핵심 기능은 동작하는 설계예요'},
+    {en:'Never return sensitive fields like passwords or tokens in API responses — use a serializer to filter the output.',es:'Nunca devuelvas campos sensibles como contraseñas o tokens en las respuestas de la API — usa un serializador para filtrar la salida.',ko:'API 응답에서 비밀번호나 토큰 같은 민감한 필드를 반환하지 말아요 — 출력을 필터링하기 위해 직렬화기를 사용해요.',tip:'응답 객체에서 민감한 필드를 명시적으로 제외하는 allowlist 방식이 안전해요'},
+    {en:'Use idempotency keys for payment and order creation APIs to safely retry failed requests.',es:'Usa claves de idempotencia para las APIs de creación de pagos y pedidos para reintentar solicitudes fallidas de manera segura.',ko:'실패한 요청을 안전하게 재시도하기 위해 결제 및 주문 생성 API에 멱등성 키를 사용해요.',tip:'idempotency key = 중복 처리를 방지하기 위한 고유한 요청 식별자예요'},
+    {en:'Add a timeout to all external API calls — never allow a slow third-party service to block your server indefinitely.',es:'Agrega un tiempo de espera a todas las llamadas a API externas — nunca permitas que un servicio de terceros lento bloquee tu servidor indefinidamente.',ko:'모든 외부 API 호출에 타임아웃을 추가해요 — 느린 서드파티 서비스가 서버를 무기한 차단하도록 허용하지 마세요.',tip:'외부 API 타임아웃을 5-30초 정도로 설정하고 타임아웃 시 적절히 처리해요'},
+    {en:'The service should emit metrics for request count, latency, and error rate so they can be visualized on a dashboard.',es:'El servicio debe emitir métricas para el recuento de solicitudes, la latencia y la tasa de errores para que puedan visualizarse en un panel.',ko:'요청 수, 지연 시간, 오류율에 대한 메트릭을 대시보드에서 시각화할 수 있도록 서비스가 메트릭을 발행해야 해요.',tip:'Prometheus + Grafana 조합이 메트릭 수집과 시각화의 표준이에요'},
+    {en:'Soft-delete records instead of hard-deleting them — add a deleted_at timestamp to preserve data history.',es:'Elimina registros de forma suave en lugar de eliminarlos permanentemente — agrega una marca de tiempo deleted_at para preservar el historial de datos.',ko:'데이터 기록을 보존하기 위해 하드 삭제 대신 소프트 삭제 레코드를 사용해요 — deleted_at 타임스탬프를 추가해요.',tip:'소프트 삭제는 데이터 복구와 감사(audit) 로그에 유용해요'},
+    {en:'Implement request deduplication to prevent duplicate operations when clients retry failed requests.',es:'Implementa la deduplicación de solicitudes para prevenir operaciones duplicadas cuando los clientes reintentan solicitudes fallidas.',ko:'클라이언트가 실패한 요청을 재시도할 때 중복 작업을 방지하기 위해 요청 중복 제거를 구현해요.',tip:'Redis로 최근 처리한 요청 ID를 캐시해서 중복을 감지해요'},
+    {en:'Use pagination for all list endpoints — never return an unbounded list that could contain millions of records.',es:'Usa paginación para todos los endpoints de lista — nunca devuelvas una lista sin límite que podría contener millones de registros.',ko:'모든 목록 엔드포인트에 페이지네이션을 사용해요 — 수백만 개의 레코드를 포함할 수 있는 무한 목록을 반환하지 마세요.',tip:'기본 limit을 20-100 사이로 설정하고 최대 limit도 제한해요'},
+    {en:'The 429 Too Many Requests response should include a Retry-After header so clients know when to try again.',es:'La respuesta 429 Demasiadas solicitudes debe incluir un encabezado Retry-After para que los clientes sepan cuándo volver a intentarlo.',ko:'429 Too Many Requests 응답에는 클라이언트가 언제 다시 시도할지 알 수 있도록 Retry-After 헤더를 포함해야 해요.',tip:'Retry-After 헤더 값은 초 단위 또는 HTTP 날짜 형식이에요'},
+    {en:'Consider using optimistic locking with a version field to handle concurrent updates to the same resource.',es:'Considera usar el bloqueo optimista con un campo de versión para manejar actualizaciones concurrentes al mismo recurso.',ko:'동일한 리소스에 대한 동시 업데이트를 처리하기 위해 version 필드로 낙관적 잠금 사용을 고려해요.',tip:'낙관적 잠금 = 충돌이 드물다고 가정하고 충돌 시에만 처리하는 방식이에요'}
+  ],
+  [ // 9: 데이터베이스
+    {en:'Use an index to speed up query performance.',es:'Usa un índice para acelerar el rendimiento de las consultas.',ko:'쿼리 성능을 높이기 위해 인덱스를 사용해요.',tip:'자주 검색하는 컬럼에 인덱스를 추가하면 속도가 빨라져요'},
+    {en:'Avoid SELECT * in production queries.',es:'Evita SELECT * en consultas de producción.',ko:'운영 쿼리에서 SELECT *을 피해요.',tip:'필요한 컬럼만 선택하면 네트워크 비용이 줄어요'},
+    {en:'Use transactions to ensure data consistency.',es:'Usa transacciones para garantizar la consistencia de los datos.',ko:'데이터 일관성을 보장하기 위해 트랜잭션을 사용해요.',tip:'ACID 특성: 원자성, 일관성, 격리성, 지속성이에요'},
+    {en:'This query has an N+1 problem.',es:'Esta consulta tiene un problema N+1.',ko:'이 쿼리에는 N+1 문제가 있어요.',tip:'JOIN이나 eager loading으로 N+1 문제를 해결해요'},
+    {en:'Add a NOT NULL constraint to required columns.',es:'Agrega una restricción NOT NULL a las columnas requeridas.',ko:'필수 컬럼에 NOT NULL 제약 조건을 추가해요.',tip:'NULL이 들어오면 안 되는 컬럼을 보호해요'},
+    {en:'Use parameterized queries to prevent SQL injection.',es:'Usa consultas parametrizadas para prevenir la inyección SQL.',ko:'SQL 인젝션을 방지하기 위해 파라미터화된 쿼리를 사용해요.',tip:'사용자 입력을 직접 쿼리에 넣으면 절대 안 돼요!'},
+    {en:'Create a composite index for frequently used column combinations.',es:'Crea un índice compuesto para combinaciones de columnas de uso frecuente.',ko:'자주 사용하는 컬럼 조합에 복합 인덱스를 만들어요.',tip:'WHERE a = 1 AND b = 2 쿼리에는 (a, b) 복합 인덱스가 효율적이에요'},
+    {en:'Run EXPLAIN to analyze query execution plan.',es:'Ejecuta EXPLAIN para analizar el plan de ejecución de consultas.',ko:'쿼리 실행 계획을 분석하려면 EXPLAIN을 실행해요.',tip:'느린 쿼리를 최적화할 때 EXPLAIN ANALYZE가 필수예요'},
+    {en:'Normalize the database to reduce redundancy.',es:'Normaliza la base de datos para reducir la redundancia.',ko:'중복성을 줄이기 위해 데이터베이스를 정규화해요.',tip:'1NF, 2NF, 3NF 정규화 단계로 데이터 중복을 없애요'},
+    {en:'Use soft delete instead of hard delete.',es:'Usa eliminación suave en lugar de eliminación definitiva.',ko:'하드 삭제 대신 소프트 삭제를 사용해요.',tip:'deleted_at 컬럼에 시간을 기록하는 방식이에요'},
+    {en:'Add a created_at and updated_at timestamp to every table.',es:'Agrega una marca de tiempo created_at y updated_at a cada tabla.',ko:'모든 테이블에 created_at과 updated_at 타임스탬프를 추가해요.',tip:'데이터 생성/수정 시간을 추적하는 데 필수예요'},
+    {en:'Foreign key constraints maintain referential integrity.',es:'Las restricciones de clave foránea mantienen la integridad referencial.',ko:'외래 키 제약 조건은 참조 무결성을 유지해요.',tip:'부모 레코드 없이 자식 레코드가 생기는 것을 방지해요'},
+    {en:'Use connection pooling to manage database connections efficiently.',es:'Usa agrupación de conexiones para administrar las conexiones de base de datos de manera eficiente.',ko:'데이터베이스 연결을 효율적으로 관리하려면 커넥션 풀링을 사용해요.',tip:'매번 새 연결을 만들면 오버헤드가 커요'},
+    {en:'Back up your database regularly.',es:'Haz copias de seguridad de tu base de datos regularmente.',ko:'정기적으로 데이터베이스를 백업해요.',tip:'자동 백업 스케줄을 설정하고 복구 테스트도 해요'},
+    {en:'Use UUID instead of auto-increment for distributed systems.',es:'Usa UUID en lugar de auto-incremento para sistemas distribuidos.',ko:'분산 시스템에서는 자동 증가 대신 UUID를 사용해요.',tip:'여러 DB 서버에서 ID 충돌을 방지해요'},
+    {en:'The UNIQUE constraint prevents duplicate values.',es:'La restricción UNIQUE evita valores duplicados.',ko:'UNIQUE 제약 조건은 중복 값을 방지해요.',tip:'이메일, 전화번호 같은 고유해야 하는 컬럼에 사용해요'},
+    {en:'Use LIMIT and OFFSET for pagination.',es:'Usa LIMIT y OFFSET para la paginación.',ko:'페이지네이션을 위해 LIMIT과 OFFSET을 사용해요.',tip:'데이터가 많을 때 cursor 기반 페이지네이션이 더 효율적이에요'},
+    {en:'Denormalize for read performance when needed.',es:'Desnormaliza para el rendimiento de lectura cuando sea necesario.',ko:'필요할 때 읽기 성능을 위해 비정규화해요.',tip:'정규화와 성능 사이의 트레이드오프를 고려해요'},
+    {en:'This table has a one-to-many relationship.',es:'Esta tabla tiene una relación uno a muchos.',ko:'이 테이블은 일대다 관계를 가져요.',tip:'사용자 한 명이 여러 게시글을 가질 수 있는 관계예요'},
+    {en:'Use a migration tool to track schema changes.',es:'Usa una herramienta de migración para rastrear los cambios de esquema.',ko:'스키마 변경을 추적하기 위해 마이그레이션 도구를 사용해요.',tip:'Flyway, Liquibase, Prisma Migrate 등을 사용해요'},
+    {en:'Index the foreign key columns.',es:'Indexa las columnas de clave foránea.',ko:'외래 키 컬럼에 인덱스를 추가해요.',tip:'JOIN 시 외래 키에 인덱스가 없으면 매우 느려져요'},
+    {en:'Avoid locking issues with optimistic concurrency control.',es:'Evita problemas de bloqueo con control de concurrencia optimista.',ko:'낙관적 동시성 제어로 잠금 문제를 피해요.',tip:'version 컬럼으로 충돌을 감지하는 방식이에요'},
+    {en:'The query is doing a full table scan.',es:'La consulta está haciendo un escaneo completo de la tabla.',ko:'쿼리가 풀 테이블 스캔을 하고 있어요.',tip:'인덱스가 없거나 잘못 설계된 쿼리에서 발생해요. 매우 느려요'},
+    {en:'Use a read replica for read-heavy workloads.',es:'Usa una réplica de lectura para cargas de trabajo de lectura intensiva.',ko:'읽기가 많은 워크로드에는 읽기 전용 복제본을 사용해요.',tip:'마스터 DB는 쓰기, 레플리카는 읽기로 부하를 분산해요'},
+    {en:'Partition large tables for better performance.',es:'Particiona tablas grandes para un mejor rendimiento.',ko:'더 나은 성능을 위해 큰 테이블을 파티셔닝해요.',tip:'날짜 범위나 해시로 파티셔닝하면 쿼리 속도가 빨라져요'},
+    {en:'Use COALESCE to handle NULL values.',es:'Usa COALESCE para manejar valores NULL.',ko:'NULL 값을 처리하려면 COALESCE를 사용해요.',tip:'COALESCE(column, \'default\') = NULL이면 \'default\'를 반환해요'},
+    {en:'A deadlock occurred between two transactions.',es:'Ocurrió un interbloqueo entre dos transacciones.',ko:'두 트랜잭션 사이에서 데드락이 발생했어요.',tip:'트랜잭션에서 잠금 순서를 일관되게 유지하면 방지할 수 있어요'},
+    {en:'Use JSONB for flexible schema in PostgreSQL.',es:'Usa JSONB para esquemas flexibles en PostgreSQL.',ko:'PostgreSQL에서 유연한 스키마를 위해 JSONB를 사용해요.',tip:'JSONB는 JSON보다 빠르고 인덱싱도 가능해요'},
+    {en:'The database needs to be vacuumed.',es:'La base de datos necesita ser aspirada.',ko:'데이터베이스를 vacuum 해야 해요.',tip:'PostgreSQL의 VACUUM은 죽은 튜플을 정리해 공간을 회수해요'},
+    {en:'Use stored procedures for complex business logic.',es:'Usa procedimientos almacenados para lógica de negocio compleja.',ko:'복잡한 비즈니스 로직에는 저장 프로시저를 사용해요.',tip:'DB 서버에서 실행되어 네트워크 왕복을 줄여요'},
+    {en:'Always use parameterized queries or prepared statements to protect against SQL injection attacks.',es:'Siempre usa consultas parametrizadas o declaraciones preparadas para protegerte contra ataques de inyección SQL.',ko:'SQL 인젝션 공격으로부터 보호하기 위해 항상 파라미터화된 쿼리나 prepared statement를 사용해요.',tip:'user input을 쿼리에 직접 넣으면 절대 안 돼요. 항상 파라미터로 전달해요'},
+    {en:'Adding an index on the foreign key column significantly speeds up JOIN queries between related tables.',es:'Agregar un índice en la columna de clave foránea acelera significativamente las consultas JOIN entre tablas relacionadas.',ko:'외래 키 컬럼에 인덱스를 추가하면 관련 테이블 간의 JOIN 쿼리가 크게 빨라져요.',tip:'외래 키 컬럼에 인덱스가 없으면 JOIN 시 전체 테이블 스캔이 발생해요'},
+    {en:'Use EXPLAIN ANALYZE instead of just EXPLAIN to see actual execution times and row counts.',es:'Usa EXPLAIN ANALYZE en lugar de solo EXPLAIN para ver los tiempos de ejecución reales y los recuentos de filas.',ko:'실제 실행 시간과 행 수를 보려면 EXPLAIN만 대신 EXPLAIN ANALYZE를 사용해요.',tip:'EXPLAIN ANALYZE는 실제로 쿼리를 실행하므로 SELECT에만 사용해요'},
+    {en:'Avoid using SELECT * — always specify the columns you need to reduce data transfer and improve query clarity.',es:'Evita usar SELECT * — siempre especifica las columnas que necesitas para reducir la transferencia de datos y mejorar la claridad de la consulta.',ko:'SELECT *를 피해요 — 데이터 전송을 줄이고 쿼리 명확성을 높이기 위해 필요한 컬럼을 항상 명시해요.',tip:'필요한 컬럼만 선택하면 인덱스 커버리지도 높아져요'},
+    {en:'Use partial indexes to create smaller, more efficient indexes for queries with WHERE conditions.',es:'Usa índices parciales para crear índices más pequeños y eficientes para consultas con condiciones WHERE.',ko:'WHERE 조건이 있는 쿼리에 대해 더 작고 효율적인 인덱스를 만들기 위해 부분 인덱스를 사용해요.',tip:'CREATE INDEX idx ON table(col) WHERE active = true 처럼 특정 조건에만 인덱스를 적용해요'},
+    {en:'A many-to-many relationship requires a junction table with foreign keys to both related tables.',es:'Una relación de muchos a muchos requiere una tabla de unión con claves foráneas para ambas tablas relacionadas.',ko:'다대다 관계는 두 관련 테이블 모두에 외래 키가 있는 중간 테이블이 필요해요.',tip:'users ↔ roles의 다대다는 user_roles 중간 테이블로 표현해요'},
+    {en:'Use database-level constraints instead of relying solely on application-level validation for data integrity.',es:'Usa restricciones a nivel de base de datos en lugar de depender únicamente de la validación a nivel de aplicación para la integridad de los datos.',ko:'데이터 무결성을 위해 애플리케이션 수준 유효성 검사에만 의존하는 대신 데이터베이스 수준 제약 조건을 사용해요.',tip:'CHECK, UNIQUE, NOT NULL 제약 조건은 DB 레벨에서 데이터 무결성을 보장해요'},
+    {en:'Avoid N+1 queries by using JOIN or eager loading instead of making separate queries in a loop.',es:'Evita las consultas N+1 usando JOIN o carga ansiosa en lugar de hacer consultas separadas en un bucle.',ko:'반복문에서 별도 쿼리를 만드는 대신 JOIN이나 eager loading을 사용해서 N+1 쿼리를 피해요.',tip:'N+1 = 1번 목록 조회 + N번 상세 조회. JOIN으로 1번에 해결할 수 있어요'},
+    {en:'Schedule regular VACUUM ANALYZE in PostgreSQL to reclaim storage and update statistics for the query planner.',es:'Programa VACUUM ANALYZE regular en PostgreSQL para reclamar almacenamiento y actualizar estadísticas para el planificador de consultas.',ko:'스토리지를 회수하고 쿼리 플래너의 통계를 업데이트하기 위해 PostgreSQL에서 정기적인 VACUUM ANALYZE를 예약해요.',tip:'autovacuum이 기본으로 활성화돼 있지만 대용량 데이터 삭제 후에는 수동 VACUUM이 필요해요'},
+    {en:'Use read replicas to distribute read traffic and reduce load on the primary database.',es:'Usa réplicas de lectura para distribuir el tráfico de lectura y reducir la carga en la base de datos principal.',ko:'읽기 트래픽을 분산하고 기본 데이터베이스의 부하를 줄이기 위해 읽기 전용 복제본을 사용해요.',tip:'쓰기는 primary, 읽기는 replica로 분산하는 것이 일반적인 확장 전략이에요'},
+    {en:'Store passwords using bcrypt with a work factor of at least 12 to ensure they are computationally expensive to crack.',es:'Almacena las contraseñas usando bcrypt con un factor de trabajo de al menos 12 para asegurarte de que sean costosas computacionalmente de descifrar.',ko:'비밀번호를 해독하는 데 계산 비용이 들도록 최소 12의 작업 인수로 bcrypt를 사용해서 비밀번호를 저장해요.',tip:'bcrypt work factor 12 = 해싱에 약 250ms가 걸려서 brute force 공격을 어렵게 해요'},
+    {en:'Use cursor-based pagination instead of offset-based for large datasets to avoid performance degradation.',es:'Usa paginación basada en cursor en lugar de basada en offset para grandes conjuntos de datos para evitar la degradación del rendimiento.',ko:'성능 저하를 피하기 위해 대용량 데이터셋에서 오프셋 기반 대신 커서 기반 페이지네이션을 사용해요.',tip:'OFFSET 100000은 10만 개를 건너뛰는 작업이라 느려요. cursor는 인덱스를 사용해요'},
+    {en:'Implement connection timeouts and statement timeouts to prevent runaway queries from consuming all database resources.',es:'Implementa tiempos de espera de conexión y declaración para evitar que las consultas descontroladas consuman todos los recursos de la base de datos.',ko:'제어 불능 쿼리가 모든 데이터베이스 리소스를 소비하지 않도록 연결 타임아웃과 명령문 타임아웃을 구현해요.',tip:'statement_timeout = 특정 시간 이상 걸리는 쿼리를 자동으로 취소해요'},
+    {en:'Use database migrations to version control your schema changes alongside your application code.',es:'Usa migraciones de base de datos para controlar la versión de los cambios de esquema junto con el código de tu aplicación.',ko:'애플리케이션 코드와 함께 스키마 변경을 버전 관리하기 위해 데이터베이스 마이그레이션을 사용해요.',tip:'마이그레이션 파일은 코드와 함께 Git으로 관리해요'},
+    {en:'Avoid running schema migrations during peak traffic — schedule them during low-traffic periods or use online migrations.',es:'Evita ejecutar migraciones de esquema durante el tráfico máximo — prográmalas durante períodos de bajo tráfico o usa migraciones en línea.',ko:'피크 트래픽 중에 스키마 마이그레이션 실행을 피해요 — 트래픽이 낮은 시간에 예약하거나 온라인 마이그레이션을 사용해요.',tip:'ALTER TABLE은 테이블에 잠금을 걸어 서비스에 영향을 줄 수 있어요'},
+    {en:'Use materialized views to precompute and cache complex aggregation queries that are expensive to run repeatedly.',es:'Usa vistas materializadas para precomputar y almacenar en caché consultas de agregación complejas que son costosas de ejecutar repetidamente.',ko:'반복적으로 실행하는 데 비용이 많이 드는 복잡한 집계 쿼리를 미리 계산하고 캐시하기 위해 구체화된 뷰를 사용해요.',tip:'materialized view = 쿼리 결과를 저장해둔 가상 테이블이에요. 주기적으로 REFRESH 해야 해요'},
+    {en:'Monitor your database for slow queries using pg_stat_statements in PostgreSQL or the slow query log in MySQL.',es:'Monitorea tu base de datos en busca de consultas lentas usando pg_stat_statements en PostgreSQL o el registro de consultas lentas en MySQL.',ko:'PostgreSQL의 pg_stat_statements 또는 MySQL의 슬로우 쿼리 로그를 사용해서 느린 쿼리를 모니터링해요.',tip:'느린 쿼리 임계값을 100ms 이하로 설정하고 주기적으로 검토해요'},
+    {en:'Use transactions with savepoints when you need partial rollback capability within a larger transaction.',es:'Usa transacciones con puntos de guardado cuando necesites capacidad de rollback parcial dentro de una transacción mayor.',ko:'더 큰 트랜잭션 내에서 부분적인 롤백 기능이 필요할 때 savepoint가 있는 트랜잭션을 사용해요.',tip:'SAVEPOINT + ROLLBACK TO SAVEPOINT 로 트랜잭션의 일부만 롤백할 수 있어요'},
+    {en:'Store large binary files in object storage like S3 and keep only the reference URL in your database.',es:'Almacena archivos binarios grandes en almacenamiento de objetos como S3 y mantén solo la URL de referencia en tu base de datos.',ko:'대용량 이진 파일은 S3 같은 객체 스토리지에 저장하고 데이터베이스에는 참조 URL만 유지해요.',tip:'DB에 대용량 파일을 저장하면 성능이 크게 저하돼요. 외부 스토리지를 활용해요'},
+    {en:'Use table partitioning to split large tables by date or category, which can dramatically speed up range queries.',es:'Usa la partición de tablas para dividir tablas grandes por fecha o categoría, lo que puede acelerar dramáticamente las consultas de rango.',ko:'범위 쿼리 속도를 극적으로 높일 수 있는 날짜나 카테고리별로 큰 테이블을 나누기 위해 테이블 파티셔닝을 사용해요.',tip:'파티셔닝으로 쿼리가 전체 테이블 대신 특정 파티션만 스캔하게 해요'}
+  ]
+];
+
+
+let topicIdx = 0;
+let cardIdx = 0;
+let flipped = false;
+let order = [];
+
+function initOrder() {
+  order = DATA[topicIdx].map((_,i)=>i);
+}
+
+function setTopic(idx, el) {
+  topicIdx = idx; cardIdx = 0; flipped = false;
+  initOrder();
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function shuffle() {
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  cardIdx=0; flipped=false;
+  render();
+}
+
+function render() {
+  const s = DATA[topicIdx][order[cardIdx]];
+  const total = DATA[topicIdx].length;
+  flipped = false;
+  document.getElementById('progText').textContent = (cardIdx+1) + ' / ' + total;
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  // Card
+  const cardWrap = document.createElement('div'); cardWrap.className = 'card-wrap';
+  const card = document.createElement('div'); card.className = 'card'; card.id = 'card';
+  card.onclick = flip;
+  const front = document.createElement('div'); front.className = 'card-face';
+  const enLabel1 = document.createElement('div'); enLabel1.className = 'lang-label en-label'; enLabel1.textContent = '🇺🇸 English';
+  const enText = document.createElement('div'); enText.className = 'en-text'; enText.textContent = s.en;
+  const hint = document.createElement('div'); hint.className = 'tap-hint'; hint.textContent = '탭해서 번역 보기 →';
+  front.append(enLabel1, enText, hint);
+  const back = document.createElement('div'); back.className = 'card-face card-back';
+  const enLabel2 = document.createElement('div'); enLabel2.className = 'lang-label en-label'; enLabel2.textContent = '🇺🇸 English';
+  const enSmall = document.createElement('div'); enSmall.style.cssText = 'font-size:14px;font-weight:700;color:var(--text);line-height:1.4'; enSmall.textContent = s.en;
+  const esLabel = document.createElement('div'); esLabel.className = 'lang-label es-label'; esLabel.style.marginTop = '4px'; esLabel.textContent = '🇪🇸 Español';
+  const esText = document.createElement('div'); esText.className = 'es-text'; esText.textContent = s.es;
+  const koLabel = document.createElement('div'); koLabel.className = 'lang-label ko-label'; koLabel.style.marginTop = '4px'; koLabel.textContent = '🇰🇷 한국어';
+  const koText = document.createElement('div'); koText.className = 'ko-text'; koText.textContent = s.ko;
+  const tipBox = document.createElement('div'); tipBox.className = 'tip-box'; tipBox.textContent = '💡 ' + s.tip;
+  back.append(enLabel2, enSmall, esLabel, esText, koLabel, koText, tipBox);
+  card.append(front, back); cardWrap.appendChild(card); main.appendChild(cardWrap);
+
+  // TTS 버튼
+  const ttsRow = document.createElement('div'); ttsRow.className = 'tts-row';
+  const btnEn = document.createElement('button'); btnEn.className = 'tts-btn en'; btnEn.textContent = '🔊 영어 발음';
+  btnEn.onclick = (e) => { e.stopPropagation(); speakText(s.en, 'en-US'); };
+  btnEn.addEventListener('touchend', (e) => { e.preventDefault(); speakText(s.en, 'en-US'); }, {passive:false});
+  const btnEs = document.createElement('button'); btnEs.className = 'tts-btn es'; btnEs.textContent = '🔊 스페인어 발음';
+  btnEs.onclick = (e) => { e.stopPropagation(); speakText(s.es, 'es-ES'); };
+  btnEs.addEventListener('touchend', (e) => { e.preventDefault(); speakText(s.es, 'es-ES'); }, {passive:false});
+  ttsRow.append(btnEn, btnEs); main.appendChild(ttsRow);
+
+  // 네비게이션
+  const navRow = document.createElement('div'); navRow.className = 'nav-row';
+  const prevBtn = document.createElement('button'); prevBtn.className = 'nav-btn'; prevBtn.textContent = '←';
+  prevBtn.disabled = cardIdx === 0; prevBtn.onclick = prev;
+  const progWrap = document.createElement('div'); progWrap.className = 'prog-wrap';
+  const progFill = document.createElement('div'); progFill.className = 'prog-fill';
+  progFill.style.width = ((cardIdx+1)/total*100) + '%';
+  progWrap.appendChild(progFill);
+  const nextBtn = document.createElement('button'); nextBtn.className = 'nav-btn'; nextBtn.textContent = '→';
+  nextBtn.disabled = cardIdx === total-1; nextBtn.onclick = next;
+  navRow.append(prevBtn, progWrap, nextBtn); main.appendChild(navRow);
+
+  // 셔플 버튼
+  const shuffleBtn = document.createElement('button'); shuffleBtn.className = 'shuffle-btn';
+  shuffleBtn.textContent = '🔀 랜덤 섞기'; shuffleBtn.onclick = shuffle;
+  main.appendChild(shuffleBtn);
+}
+function flip() { flipped=!flipped; document.getElementById('card').classList.toggle('flipped',flipped); }
+function prev() { if(cardIdx>0){cardIdx--;render();} }
+function next() { if(cardIdx<DATA[topicIdx].length-1){cardIdx++;render();} }
+function speakText(text, lang) {
+  // 모바일 Safari: 재생 중이면 cancel 후 짧은 딜레이 필요
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = 0.85;
+    u.volume = 1;
+    // 모바일용 음성 선택: 해당 언어 음성이 있으면 우선 사용
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      const match = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+      if (match) u.voice = match;
+    }
+    window.speechSynthesis.speak(u);
+  }, 50);
+}
+
+// 모바일: 음성 목록을 미리 로드
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
+}
+
+initOrder();
+render();
+</script>
+</body>
+</html>
