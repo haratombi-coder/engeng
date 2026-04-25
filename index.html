@@ -25,14 +25,14 @@
     .header-right { display: flex; align-items: center; gap: 8px; }
     .icon-btn {
       width: 36px; height: 36px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 10px; font-size: 16px;
+      border: 1px solid var(--border); border-radius: 10px; font-size: 17px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.2s; color: var(--text-muted);
     }
     .icon-btn:hover { border-color: var(--border-hover); color: var(--text); }
     .new-btn {
       height: 36px; padding: 0 14px; background: var(--warm); color: #0a0a0a;
-      border: none; border-radius: 10px; font-size: 13px; font-weight: 800;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 800;
       font-family: 'Nunito', sans-serif; cursor: pointer;
       display: flex; align-items: center; gap: 5px; transition: opacity 0.2s;
     }
@@ -40,7 +40,7 @@
     .progress-wrap { padding: 12px 1.2rem 0; max-width: 640px; margin: 0 auto; }
     .progress-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
     .progress-stats { display: flex; gap: 12px; }
-    .stat { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
+    .stat { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
     .stat.done { color: var(--green); }
     .stat.review { color: var(--red); }
     .stat.total { color: var(--text-muted); }
@@ -58,20 +58,20 @@
     .card.is-review { border-color: rgba(240,127,127,0.3); }
     .card-front { padding: 1rem 1.2rem; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
     .card-top { display: flex; align-items: center; justify-content: space-between; }
-    .tag { font-size: 11px; font-weight: 800; color: var(--text-dim); letter-spacing: 0.06em; }
-    .card-status { font-size: 14px; }
-    .en-text { font-size: 15px; font-weight: 800; color: var(--text); line-height: 1.45; }
-    .tap-hint { font-size: 11px; font-weight: 700; color: var(--text-dim); text-align: right; }
+    .tag { font-size: 12px; font-weight: 800; color: var(--text-dim); letter-spacing: 0.06em; }
+    .card-status { font-size: 15px; }
+    .en-text { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1.45; }
+    .tap-hint { font-size: 12px; font-weight: 700; color: var(--text-dim); text-align: right; }
     .card-back {
       display: none; flex-direction: column; gap: 6px;
       padding: 0.8rem 1.2rem; border-top: 1px solid var(--border);
     }
     .card.open .card-back { display: flex; }
     .card.open .tap-hint { display: none; }
-    .ko-text { font-size: 14px; font-weight: 700; color: var(--warm); line-height: 1.5; }
-    .es-text { font-size: 13px; font-weight: 700; color: var(--green); line-height: 1.5; }
+    .ko-text { font-size: 15px; font-weight: 700; color: var(--warm); line-height: 1.5; }
+    .es-text { font-size: 14px; font-weight: 700; color: var(--green); line-height: 1.5; }
     .tip-text {
-      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
       background: rgba(255,255,255,0.03); border: 1px solid var(--border);
       border-radius: 8px; padding: 8px 10px; line-height: 1.6;
     }
@@ -79,7 +79,7 @@
     .card.open .card-actions { display: flex; }
     .action-btn {
       flex: 1; height: 40px; border: 1px solid var(--border); border-radius: 10px;
-      font-size: 13px; font-weight: 800; font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif;
       cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
       transition: all 0.2s; background: var(--surface);
     }
@@ -92,10 +92,10 @@
     .btn-sound { color: var(--blue); border-color: rgba(126,184,247,0.3); flex: 0; padding: 0 14px; }
     .btn-sound:hover { background: rgba(126,184,247,0.1); border-color: var(--blue); }
     .speed-wrap { padding: 0.5rem 1.2rem 1.5rem; max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
-    .speed-label { font-size: 12px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+    .speed-label { font-size: 13px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
     .speed-slider { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; background: var(--surface-2); border-radius: 99px; outline: none; }
     .speed-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--warm); border-radius: 50%; cursor: pointer; }
-    .speed-val { font-size: 13px; font-weight: 800; color: var(--warm); min-width: 36px; text-align: right; }
+    .speed-val { font-size: 14px; font-weight: 800; color: var(--warm); min-width: 36px; text-align: right; }
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
@@ -107,11 +107,11 @@
       border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 340px;
       display: flex; flex-direction: column; gap: 12px;
     }
-    .modal-title { font-size: 17px; font-weight: 800; }
-    .modal-desc { font-size: 13px; font-weight: 600; color: var(--text-muted); line-height: 1.6; }
+    .modal-title { font-size: 18px; font-weight: 800; }
+    .modal-desc { font-size: 14px; font-weight: 600; color: var(--text-muted); line-height: 1.6; }
     .modal-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
     .modal-btn {
-      height: 46px; border-radius: 12px; font-size: 14px; font-weight: 800;
+      height: 46px; border-radius: 12px; font-size: 15px; font-weight: 800;
       font-family: 'Nunito', sans-serif; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s;
     }
     .modal-btn.danger-all { background: rgba(240,127,127,0.12); color: var(--red); border-color: rgba(240,127,127,0.3); }
@@ -121,7 +121,7 @@
     .modal-btn.cancel { background: var(--surface-2); color: var(--text-muted); }
     .modal-btn.cancel:hover { color: var(--text); }
     @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    footer { text-align: center; padding: 1.5rem; font-size: 12px; font-weight: 700; color: var(--text-dim); border-top: 1px solid var(--border); }
+    footer { text-align: center; padding: 1.5rem; font-size: 13px; font-weight: 700; color: var(--text-dim); border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
